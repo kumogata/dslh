@@ -48,7 +48,7 @@ h = Dslh.eval do
   end
 end
 
-# It can also evaluated string:
+# It can also evaluate string:
 # ---
 # Dslh.eval(<<-EOS, :filename => 'my.rb', :lineno => 100)
 #   foo 'bar'
