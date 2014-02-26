@@ -2,6 +2,9 @@
 
 It define Hash as a DSL.
 
+[![Gem Version](https://badge.fury.io/rb/dslh.png)](http://badge.fury.io/rb/dslh)
+[![Build Status](https://drone.io/bitbucket.org/winebarrel/dslh/status.png)](https://drone.io/bitbucket.org/winebarrel/dslh/latest)
+
 ## Installation
 
 Add this line to your application's Gemfile:
