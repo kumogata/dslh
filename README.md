@@ -48,6 +48,15 @@ h = Dslh.eval do
   end
 end
 
+# It can also evaluated string:
+# ---
+# Dslh.eval(<<-EOS, :filename => 'my.rb', :lineno => 100)
+#   foo 'bar'
+#   zoo do
+#     baz 100
+#   end
+# EOS
+
 pp h
 ```
 
