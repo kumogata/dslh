@@ -271,4 +271,34 @@ describe Dslh do
        :key2 => ["100", "200"]}
     )
   end
+
+  it 'should share context' do
+    h = Dslh.eval :value_conv => proc {|i| i.to_s } do
+      def func
+        123
+      end
+
+      var1 = 'FOO'
+      var2 = 'BAR'
+      var3 = 'ZOO'
+
+      key1 func
+      key2 do
+        key21 func
+        key22 do
+          key221 func
+          key222 var1
+        end
+        key23 var2
+      end
+      key3 var3
+    end
+
+    expect(h).to eq(
+      {:key1=>"123",
+       :key2=>
+        {:key21=>"123", :key22=>{:key221=>"123", :key222=>"FOO"}, :key23=>"BAR"},
+       :key3=>"ZOO"}
+    )
+  end
 end

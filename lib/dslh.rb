@@ -53,7 +53,16 @@ class Dslh
       key_conv = @__options__[:key_conv] || @__options__[:conv]
       value_conv = @__options__[:value_conv] || @__options__[:conv]
 
-      nested_hash = block ? Dslh.eval(@__options__, &block) : nil
+      nested_hash = nil
+
+      if block
+        hash_orig = @__hash__
+        @__hash__ = {}
+        self.instance_eval(&block)
+        nested_hash = @__hash__
+        @__hash__ = hash_orig
+      end
+
       method_name = key_conv.call(method_name) if key_conv
 
       if args.empty?
