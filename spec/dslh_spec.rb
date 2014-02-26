@@ -194,4 +194,69 @@ describe Dslh do
     )
   end
 
+  it 'should evalute string' do
+    expr = <<-EOS
+      key1 'value'
+      key2 100
+
+      key3 do
+        key31 "value31" do
+          key311 100
+          key312 '200'
+        end
+
+        key32 do
+          key321 "value321" do
+            key3211 'XXX'
+            key3212 :XXX
+          end
+          key322 300
+        end
+      end
+    EOS
+
+    h = Dslh.eval(expr)
+
+    expect(h).to eq(
+      {:key1=>"value",
+       :key2=>100,
+       :key3=>
+        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
+         :key32=>
+          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+    )
+  end
+
+  it 'should evalute string with filename/lineno' do
+    expr = <<-EOS
+      key1 'value'
+      key2 100
+
+      key3 do
+        key31 "value31" do
+          key311 100
+          key312 '200'
+        end
+
+        key32 do
+          key321 "value321" do
+            key3211 'XXX'
+            key3212 :XXX
+          end
+          key322 300
+        end
+      end
+    EOS
+
+    h = Dslh.eval(expr, :filename => 'my.rb', :lineno => 100)
+
+    expect(h).to eq(
+      {:key1=>"value",
+       :key2=>100,
+       :key3=>
+        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
+         :key32=>
+          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+    )
+  end
 end
