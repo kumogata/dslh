@@ -59,8 +59,8 @@ class Dslh
       if args.empty?
         @__hash__[method_name] = nested_hash
       else
+        args = args.map {|i| value_conv.call(i) } if value_conv
         value = args.length > 1 ? args : args[0]
-        value = value_conv.call(value) if value_conv
 
         if nested_hash
           @__hash__[method_name] = {

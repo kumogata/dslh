@@ -259,4 +259,16 @@ describe Dslh do
           {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
     )
   end
+
+  it 'should convert array' do
+    h = Dslh.eval :value_conv => proc {|i| i.to_s } do
+      key1 'value1', 'value2'
+      key2 100, 200
+    end
+
+    expect(h).to eq(
+      {:key1 => ["value1", "value2"],
+       :key2 => ["100", "200"]}
+    )
+  end
 end
