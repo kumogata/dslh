@@ -71,24 +71,39 @@ class Dslh
   private
 
   def deval0(hash, depth, buf)
+    indent = (INDENT_SPACES * depth)
+    key_conv = @options[:key_conv] || @options[:conv]
+    value_conv = @options[:value_conv] || @options[:conv]
+    exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
+    keys = key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys
+
+    if exclude_key and keys.any? {|k| exclude_key.call(k) }
+      buf.puts '(' + hash.inspect + ')'
+      return
+    end
+
     hash.each do |key, value|
-      key_conv = @options[:key_conv] || @options[:conv]
-      value_conv = @options[:value_conv] || @options[:conv]
-
       key = key_conv.call(key) if key_conv
-      indent = (INDENT_SPACES * depth)
-
       buf.print(indent + key)
 
       case value
       when Hash
-        buf.puts(' do')
-        deval0(value, depth + 1, buf)
-        buf.puts(indent + 'end')
+        if exclude_key and value.keys.any? {|k| exclude_key.call(k) }
+          buf.puts '(' + value.inspect + ')'
+        else
+          buf.puts(' do')
+          deval0(value, depth + 1, buf)
+          buf.puts(indent + 'end')
+        end
       when Array
         buf.puts ' ' + value.map {|v|
           v = value_conv.call(v) if value_conv
-          v.inspect
+
+          if v.kind_of?(Hash)
+            '(' + v.inspect + ')'
+          else
+            v.inspect
+          end
         }.join(', ')
       else
         value = value_conv.call(value) if value_conv
