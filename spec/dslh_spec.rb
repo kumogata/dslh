@@ -495,4 +495,14 @@ glossary do
 end
     EOS
   end
+
+  it 'should convert json to dsl' do
+    url = 'https://s3.amazonaws.com/cloudformation-templates-us-east-1/Drupal_Multi_AZ.template'
+    template = open(url) {|f| f.read }
+    template = JSON.parse(template)
+
+    dsl = Dslh.deval(template)
+    evaluated = Dslh.eval(dsl, :key_conv => proc {|i| i.to_s })
+    expect(evaluated).to eq(template)
+  end
 end

@@ -73,12 +73,13 @@ class Dslh
 
   def deval0(hash, depth, buf)
     indent = (INDENT_SPACES * depth)
+    next_indent = (INDENT_SPACES * (depth + 1))
     key_conv = @options[:key_conv] || @options[:conv]
     value_conv = @options[:value_conv] || @options[:conv]
     exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
 
     if exclude_key and (key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys).any? {|k| exclude_key.call(k) }
-      buf.puts '(' + hash.pretty_inspect.strip + ')'
+      buf.puts '(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')'
       return
     end
 
@@ -89,22 +90,26 @@ class Dslh
       case value
       when Hash
         if exclude_key and (key_conv ? value.keys.map {|k| key_conv.call(k) } : value.keys).any? {|k| exclude_key.call(k) }
-          buf.puts '(' + value.pretty_inspect.strip + ')'
+          buf.puts '(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')'
         else
           buf.puts(' do')
           deval0(value, depth + 1, buf)
           buf.puts(indent + 'end')
         end
       when Array
-        buf.puts ' ' + value.map {|v|
-          v = value_conv.call(v) if value_conv
+        if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
+          buf.puts '(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')'
+        else
+          buf.puts ' ' + value.map {|v|
+            v = value_conv.call(v) if value_conv
 
-          if v.kind_of?(Hash)
-            '(' + v.inspect + ')'
-          else
-            v.inspect
-          end
-        }.join(', ')
+            if v.kind_of?(Hash)
+              '(' + v.inspect + ')'
+            else
+              v.inspect
+            end
+          }.join(', ')
+        end
       else
         value = value_conv.call(value) if value_conv
         buf.puts ' ' + value.inspect
