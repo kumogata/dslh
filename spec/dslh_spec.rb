@@ -323,4 +323,176 @@ describe Dslh do
 
     expect(h).to eq({:key1=>123, :key2=>{:key21=>123, :key22=>{:key221=>123}}})
   end
+
+  it 'should convert hash to dsl' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h)
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso "GML", "XML"
+        end
+        GlossSee "markup"
+      end
+    end
+  end
+end
+    EOS
+  end
+
+  it 'should convert hash to dsl with conv' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :conv => proc {|i| i.to_s.upcase })
+    expect(dsl).to eq(<<-EOS)
+GLOSSARY do
+  TITLE "EXAMPLE GLOSSARY"
+  GLOSSDIV do
+    TITLE "S"
+    GLOSSLIST do
+      GLOSSENTRY do
+        ID "SGML"
+        SORTAS "SGML"
+        GLOSSTERM "STANDARD GENERALIZED MARKUP LANGUAGE"
+        ACRONYM "SGML"
+        ABBREV "ISO 8879:1986"
+        GLOSSDEF do
+          PARA "A META-MARKUP LANGUAGE, USED TO CREATE MARKUP LANGUAGES SUCH AS DOCBOOK."
+          GLOSSSEEALSO "GML", "XML"
+        end
+        GLOSSSEE "MARKUP"
+      end
+    end
+  end
+end
+    EOS
+  end
+
+  it 'should convert hash to dsl with key_conv' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :key_conv => proc {|i| i.to_s.upcase })
+    expect(dsl).to eq(<<-EOS)
+GLOSSARY do
+  TITLE "example glossary"
+  GLOSSDIV do
+    TITLE "S"
+    GLOSSLIST do
+      GLOSSENTRY do
+        ID "SGML"
+        SORTAS "SGML"
+        GLOSSTERM "Standard Generalized Markup Language"
+        ACRONYM "SGML"
+        ABBREV "ISO 8879:1986"
+        GLOSSDEF do
+          PARA "A meta-markup language, used to create markup languages such as DocBook."
+          GLOSSSEEALSO "GML", "XML"
+        end
+        GLOSSSEE "markup"
+      end
+    end
+  end
+end
+    EOS
+  end
+
+  it 'should convert hash to dsl with value_conv' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :value_conv => proc {|i| i.to_s.upcase })
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "EXAMPLE GLOSSARY"
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "STANDARD GENERALIZED MARKUP LANGUAGE"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A META-MARKUP LANGUAGE, USED TO CREATE MARKUP LANGUAGES SUCH AS DOCBOOK."
+          GlossSeeAlso "GML", "XML"
+        end
+        GlossSee "MARKUP"
+      end
+    end
+  end
+end
+    EOS
+  end
 end

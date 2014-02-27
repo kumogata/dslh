@@ -1,27 +1,40 @@
 require 'dslh/version'
+require 'stringio'
 
 class Dslh
-  def self.eval(expr_or_options = nil, options = nil, &block)
-    if options and not options.kind_of?(Hash)
-      raise TypeError, "wrong argument type #{options.class} (expected Hash)"
-    end
+  INDENT_SPACES = '  '
 
-    expr = nil
-    options ||= {}
-
-    if expr_or_options
-      case expr_or_options
-      when String
-        expr = expr_or_options
-      when Hash
-        options.update(expr_or_options)
-      else
-        raise TypeError, "wrong argument type #{expr_or_options.class} (expected String or Hash)"
+  class << self
+    def eval(expr_or_options = nil, options = nil, &block)
+      if options and not options.kind_of?(Hash)
+        raise TypeError, "wrong argument type #{options.class} (expected Hash)"
       end
+
+      expr = nil
+      options ||= {}
+
+      if expr_or_options
+        case expr_or_options
+        when String
+          expr = expr_or_options
+        when Hash
+          options.update(expr_or_options)
+        else
+          raise TypeError, "wrong argument type #{expr_or_options.class} (expected String or Hash)"
+        end
+      end
+
+      self.new(options).eval(expr, &block)
     end
 
-    self.new(options).eval(expr, &block)
-  end
+    def deval(hash, options = {}, &block)
+      if [hash, options].all? {|i| not i.kind_of?(Hash) }
+        raise TypeError, "wrong argument type #{options.class} (expected Hash)"
+      end
+
+      self.new(options).deval(hash, &block)
+    end
+  end # of class methods
 
   def initialize(options = {})
     @options = options.dup
@@ -47,6 +60,41 @@ class Dslh
     end
 
     return retval
+  end
+
+  def deval(hash)
+    buf = StringIO.new
+    deval0(hash, 0, buf)
+    buf.string
+  end
+
+  private
+
+  def deval0(hash, depth, buf)
+    hash.each do |key, value|
+      key_conv = @options[:key_conv] || @options[:conv]
+      value_conv = @options[:value_conv] || @options[:conv]
+
+      key = key_conv.call(key) if key_conv
+      indent = (INDENT_SPACES * depth)
+
+      buf.print(indent + key)
+
+      case value
+      when Hash
+        buf.puts(' do')
+        deval0(value, depth + 1, buf)
+        buf.puts(indent + 'end')
+      when Array
+        buf.puts ' ' + value.map {|v|
+          v = value_conv.call(v) if value_conv
+          v.inspect
+        }.join(', ')
+      else
+        value = value_conv.call(value) if value_conv
+        buf.puts ' ' + value.inspect
+      end
+    end
   end
 
   class Scope
@@ -82,6 +130,6 @@ class Dslh
 
         return @__hash__
       end
-    end # of Scope
-  end
+    end
+  end # of Scope
 end
