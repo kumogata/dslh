@@ -301,4 +301,26 @@ describe Dslh do
        :key3=>"ZOO"}
     )
   end
+
+  it 'should hook scope' do
+    scope_hook = proc do |scope|
+      scope.instance_eval(<<-EOS)
+        def func
+          123
+        end
+      EOS
+    end
+
+    h = Dslh.eval :scope_hook => scope_hook do
+      key1 func
+      key2 do
+        key21 func
+        key22 do
+          key221 func
+        end
+      end
+    end
+
+    expect(h).to eq({:key1=>123, :key2=>{:key21=>123, :key22=>{:key221=>123}}})
+  end
 end

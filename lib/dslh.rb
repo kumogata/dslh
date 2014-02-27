@@ -32,6 +32,7 @@ class Dslh
     scope = Scope.new
     scope.instance_variable_set(:@__options__, @options)
     scope.instance_variable_set(:@__hash__, retval)
+    @options[:scope_hook].call(scope) if @options[:scope_hook]
 
     if expr
       eval_args = [expr]
