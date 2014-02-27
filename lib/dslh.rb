@@ -1,5 +1,6 @@
 require 'dslh/version'
 require 'stringio'
+require 'pp'
 
 class Dslh
   INDENT_SPACES = '  '
@@ -77,7 +78,7 @@ class Dslh
     exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
 
     if exclude_key and (key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys).any? {|k| exclude_key.call(k) }
-      buf.puts '(' + hash.inspect + ')'
+      buf.puts '(' + hash.pretty_inspect.strip + ')'
       return
     end
 
@@ -88,7 +89,7 @@ class Dslh
       case value
       when Hash
         if exclude_key and (key_conv ? value.keys.map {|k| key_conv.call(k) } : value.keys).any? {|k| exclude_key.call(k) }
-          buf.puts '(' + value.inspect + ')'
+          buf.puts '(' + value.pretty_inspect.strip + ')'
         else
           buf.puts(' do')
           deval0(value, depth + 1, buf)
