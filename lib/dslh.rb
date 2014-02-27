@@ -75,9 +75,8 @@ class Dslh
     key_conv = @options[:key_conv] || @options[:conv]
     value_conv = @options[:value_conv] || @options[:conv]
     exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
-    keys = key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys
 
-    if exclude_key and keys.any? {|k| exclude_key.call(k) }
+    if exclude_key and (key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys).any? {|k| exclude_key.call(k) }
       buf.puts '(' + hash.inspect + ')'
       return
     end
@@ -88,7 +87,7 @@ class Dslh
 
       case value
       when Hash
-        if exclude_key and value.keys.any? {|k| exclude_key.call(k) }
+        if exclude_key and (key_conv ? value.keys.map {|k| key_conv.call(k) } : value.keys).any? {|k| exclude_key.call(k) }
           buf.puts '(' + value.inspect + ')'
         else
           buf.puts(' do')
