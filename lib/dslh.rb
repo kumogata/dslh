@@ -76,7 +76,6 @@ class Dslh
     next_indent = (INDENT_SPACES * (depth + 1))
     key_conv = @options[:key_conv] || @options[:conv]
     value_conv = @options[:value_conv] || @options[:conv]
-    exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
 
     if exclude_key?(key_conv, hash.keys)
       buf.puts '(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')'
