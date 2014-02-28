@@ -134,7 +134,12 @@ class Dslh
 
   def exclude_key?(key_conv, keys)
     exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
-    exclude_key and (key_conv ? keys.map {|k| key_conv.call(k) } : keys).any? {|k| exclude_key.call(k) }
+
+    if not @options.has_key?(:exclude_key) and key_conv
+      keys = keys.map {|k| key_conv.call(k) }
+    end
+
+    keys.any? {|k| exclude_key.call(k) }
   end
 
   class Scope
