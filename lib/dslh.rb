@@ -78,7 +78,7 @@ class Dslh
     value_conv = @options[:value_conv] || @options[:conv]
     exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
 
-    if exclude_key and (key_conv ? hash.keys.map {|k| key_conv.call(k) } : hash.keys).any? {|k| exclude_key.call(k) }
+    if exclude_key?(key_conv, hash.keys)
       buf.puts '(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')'
       return
     end
@@ -89,7 +89,7 @@ class Dslh
 
       case value
       when Hash
-        if exclude_key and (key_conv ? value.keys.map {|k| key_conv.call(k) } : value.keys).any? {|k| exclude_key.call(k) }
+        if exclude_key?(key_conv, value.keys)
           buf.puts '(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')'
         else
           buf.puts(' do')
@@ -115,6 +115,11 @@ class Dslh
         buf.puts ' ' + value.inspect
       end
     end
+  end
+
+  def exclude_key?(key_conv, keys)
+    exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
+    exclude_key and (key_conv ? keys.map {|k| key_conv.call(k) } : keys).any? {|k| exclude_key.call(k) }
   end
 
   class Scope
