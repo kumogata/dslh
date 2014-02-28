@@ -78,7 +78,7 @@ class Dslh
     value_conv = @options[:value_conv] || @options[:conv]
 
     if exclude_key?(key_conv, hash.keys)
-      buf.puts '(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')'
+      buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
       return
     end
 
@@ -89,7 +89,7 @@ class Dslh
       case value
       when Hash
         if exclude_key?(key_conv, value.keys)
-          buf.puts '(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')'
+          buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
         else
           buf.puts(' do')
           deval0(value, depth + 1, buf)
@@ -97,9 +97,25 @@ class Dslh
         end
       when Array
         if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
-          buf.puts '(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')'
+          buf.puts(' [')
+
+          value.each_with_index do |v, i|
+            if v.kind_of?(Hash)
+              buf.puts(next_indent + '_{')
+              deval0(v, depth + 2, buf)
+              buf.print(next_indent + '}')
+            else
+              buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
+            end
+
+            buf.puts(i < (value.length - 1) ? ',' : '')
+          end
+
+          buf.puts(indent + ']')
+        elsif value.length == 1
+          buf.puts(' ' + value.inspect)
         else
-          buf.puts ' ' + value.map {|v|
+          buf.puts(' ' + value.map {|v|
             v = value_conv.call(v) if value_conv
 
             if v.kind_of?(Hash)
@@ -107,11 +123,11 @@ class Dslh
             else
               v.inspect
             end
-          }.join(', ')
+          }.join(', '))
         end
       else
         value = value_conv.call(value) if value_conv
-        buf.puts ' ' + value.inspect
+        buf.puts(' ' + value.inspect)
       end
     end
   end
@@ -122,6 +138,17 @@ class Dslh
   end
 
   class Scope
+    def _(&block)
+      if block
+        hash_orig = @__hash__
+        @__hash__ = {}
+        self.instance_eval(&block)
+        nested_hash = @__hash__
+        @__hash__ = hash_orig
+        return nested_hash
+      end
+    end
+
     def method_missing(method_name, *args, &block)
       key_conv = @__options__[:key_conv] || @__options__[:conv]
       value_conv = @__options__[:value_conv] || @__options__[:conv]
