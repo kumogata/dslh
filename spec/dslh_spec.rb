@@ -1103,7 +1103,7 @@ end
           if nested
             "_path(#{k.inspect}) #{v}"
           else
-            "_path(#{k.inspect}) { #{v} }"
+            "_path #{k.inspect}, #{v}"
           end
         end
       else
@@ -1403,9 +1403,9 @@ Resources do
                "mailcap"=>[]})
           end
           sources do
-            _path("/var/www/html") { "http://ftp.drupal.org/files/projects/drupal-7.8.tar.gz" }
-            _path("/home/ec2-user") { "http://ftp.drupal.org/files/projects/drush-7.x-4.5.tar.gz" }
-            _path("/home/ec2-user/s3fs") { "http://s3fs.googlecode.com/files/s3fs-1.61.tar.gz" }
+            _path "/var/www/html", "http://ftp.drupal.org/files/projects/drupal-7.8.tar.gz"
+            _path "/home/ec2-user", "http://ftp.drupal.org/files/projects/drush-7.x-4.5.tar.gz"
+            _path "/home/ec2-user/s3fs", "http://s3fs.googlecode.com/files/s3fs-1.61.tar.gz"
           end
           files do
             _path("/etc/passwd-s3fs") do
