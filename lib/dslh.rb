@@ -167,30 +167,13 @@ class Dslh
 
   class Scope
     def _(&block)
-      if block
-        hash_orig = @__hash__
-        @__hash__ = {}
-        self.instance_eval(&block)
-        nested_hash = @__hash__
-        @__hash__ = hash_orig
-        return nested_hash
-      end
+      ScopeBlock.nest(binding, 'block')
     end
 
     def method_missing(method_name, *args, &block)
       key_conv = @__options__[:key_conv] || @__options__[:conv]
       value_conv = @__options__[:value_conv] || @__options__[:conv]
-
-      nested_hash = nil
-
-      if block
-        hash_orig = @__hash__
-        @__hash__ = {}
-        self.instance_eval(&block)
-        nested_hash = @__hash__
-        @__hash__ = hash_orig
-      end
-
+      nested_hash = ScopeBlock.nest(binding, 'block')
       method_name = key_conv.call(method_name) if key_conv
 
       if args.empty?
@@ -211,4 +194,21 @@ class Dslh
       end
     end
   end # of Scope
+
+  class ScopeBlock
+    def self.nest(bind, block_var)
+      eval(<<-EOS, bind)
+        if #{block_var}
+          __hash_orig = @__hash__
+          @__hash__ = {}
+          self.instance_eval(&#{block_var})
+          __nested_hash = @__hash__
+          @__hash__ = __hash_orig
+          __nested_hash
+        else
+          nil
+        end
+      EOS
+    end
+  end
 end
