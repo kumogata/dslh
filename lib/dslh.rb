@@ -76,6 +76,7 @@ class Dslh
     next_indent = (INDENT_SPACES * (depth + 1))
     key_conv = @options[:key_conv] || @options[:conv]
     value_conv = @options[:value_conv] || @options[:conv]
+    nested = false
 
     if exclude_key?(key_conv, hash.keys)
       buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
@@ -83,51 +84,73 @@ class Dslh
     end
 
     hash.each do |key, value|
-      key = key_conv.call(key) if key_conv
-      buf.print(indent + key)
-
-      case value
-      when Hash
-        if exclude_key?(key_conv, value.keys)
-          buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
-        else
-          buf.puts(' do')
-          deval0(value, depth + 1, buf)
-          buf.puts(indent + 'end')
-        end
-      when Array
-        if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
-          buf.puts(' [')
-
-          value.each_with_index do |v, i|
-            if v.kind_of?(Hash)
-              buf.puts(next_indent + '_{')
-              deval0(v, depth + 2, buf)
-              buf.print(next_indent + '}')
-            else
-              buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
-            end
-
-            buf.puts(i < (value.length - 1) ? ',' : '')
+      value_proc = proc do |value_buf|
+        case value
+        when Hash
+          if exclude_key?(key_conv, value.keys)
+            value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
+          else
+            nested = true
+            value_buf.puts(' do')
+            deval0(value, depth + 1, value_buf)
+            value_buf.puts(indent + 'end')
           end
+        when Array
+          if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
+            nested = true
+            value_buf.puts(' [')
 
-          buf.puts(indent + ']')
-        elsif value.length == 1
-          buf.puts(' ' + value.inspect)
-        else
-          buf.puts(' ' + value.map {|v|
-            v = value_conv.call(v) if value_conv
+            value.each_with_index do |v, i|
+              if v.kind_of?(Hash)
+                value_buf.puts(next_indent + '_{')
+                deval0(v, depth + 2, value_buf)
+                value_buf.print(next_indent + '}')
+              else
+                value_buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
+              end
 
-            if v.kind_of?(Hash)
-              '(' + v.inspect + ')'
-            else
-              v.inspect
+              value_buf.puts(i < (value.length - 1) ? ',' : '')
             end
-          }.join(', '))
+
+            value_buf.puts(indent + ']')
+          elsif value.length == 1
+            value_buf.puts(' ' + value.inspect)
+          else
+            value_buf.puts(' ' + value.map {|v|
+              v = value_conv.call(v) if value_conv
+
+              if v.kind_of?(Hash)
+                '(' + v.inspect + ')'
+              else
+                v.inspect
+              end
+            }.join(', '))
+          end
+        else
+          value = value_conv.call(value) if value_conv
+          value_buf.puts(' ' + value.inspect)
         end
+      end
+
+      key = key_conv.call(key) if key_conv
+
+      if key.kind_of?(Proc)
+        tmp_buf = StringIO.new
+        value_proc.call(tmp_buf)
+
+        key_value = case key.arity
+                    when 0
+                      key.call
+                    when 1
+                      key.call(tmp_buf.string.strip)
+                    else
+                      key.call(tmp_buf.string.strip, nested)
+                    end
+
+        buf.puts(indent + key_value)
       else
-        value = value_conv.call(value) if value_conv
-        buf.puts(' ' + value.inspect)
+        buf.print(indent + key)
+        value_proc.call(buf)
       end
     end
   end
