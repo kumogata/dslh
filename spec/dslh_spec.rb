@@ -1,4 +1,8 @@
 describe Dslh do
+  let(:drupal_multi_az_template) do
+    open(File.expand_path('../Drupal_Multi_AZ.template', __FILE__)) {|f| f.read }
+  end
+
   it 'should be empty hash' do
     h = Dslh.eval {}
     expect(h).to eq({})
@@ -497,9 +501,7 @@ end
   end
 
   it 'should convert json to dsl' do
-    url = 'https://s3.amazonaws.com/cloudformation-templates-us-east-1/Drupal_Multi_AZ.template'
-    template = open(url) {|f| f.read }
-    template = JSON.parse(template)
+    template = JSON.parse(drupal_multi_az_template)
 
     dsl = Dslh.deval(template)
     evaluated = Dslh.eval(dsl, :key_conv => proc {|i| i.to_s })
@@ -507,9 +509,7 @@ end
   end
 
   it 'should convert json to dsl with key_conf' do
-    url = 'https://s3.amazonaws.com/cloudformation-templates-us-east-1/Drupal_Multi_AZ.template'
-    template = open(url) {|f| f.read }
-    template = JSON.parse(template)
+    template = JSON.parse(drupal_multi_az_template)
 
     exclude_key = proc do |k|
       k = k.to_s.gsub('::', '__')
