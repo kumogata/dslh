@@ -3,7 +3,7 @@
 It define Hash as a DSL.
 
 [![Gem Version](https://badge.fury.io/rb/dslh.png)](http://badge.fury.io/rb/dslh)
-[![Build Status](https://drone.io/bitbucket.org/winebarrel/dslh/status.png)](https://drone.io/bitbucket.org/winebarrel/dslh/latest)
+[![Build Status](https://drone.io/github.com/winebarrel/dslh/status.png)](https://drone.io/github.com/winebarrel/dslh/latest)
 
 ## Installation
 
