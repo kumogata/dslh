@@ -78,7 +78,7 @@ class Dslh
     key_conv = @options[:key_conv]
     value_conv = @options[:value_conv]
 
-    if exclude_key?(hash.keys)
+    if exclude_keys?(hash.keys)
       buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
       return
     end
@@ -115,7 +115,7 @@ class Dslh
 
     case value
     when Hash
-      if exclude_key?(value.keys)
+      if exclude_keys?(value.keys)
         value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
       else
         nested = true
@@ -162,7 +162,7 @@ class Dslh
     return nested
   end
 
-  def exclude_key?(keys)
+  def exclude_keys?(keys)
     key_conv = @options[:key_conv]
 
     exclude_key = @options[:exclude_key] || proc {|k|
