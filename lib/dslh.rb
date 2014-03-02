@@ -107,7 +107,7 @@ class Dslh
     end
   end
 
-  def value_proc(value, depth, value_buf)
+  def value_proc(value, depth, value_buf, newline = true)
     indent = (INDENT_SPACES * depth)
     next_indent = (INDENT_SPACES * (depth + 1))
     value_conv = @options[:value_conv]
@@ -129,10 +129,14 @@ class Dslh
         value_buf.puts(' [')
 
         value.each_with_index do |v, i|
-          if v.kind_of?(Hash)
+          case v
+          when Hash
             value_buf.puts(next_indent + '_{')
             deval0(v, depth + 2, value_buf)
             value_buf.print(next_indent + '}')
+          when Array
+            value_buf.print(next_indent.slice(0...-1))
+            value_proc(v, depth + 1, value_buf, false)
           else
             value_buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
           end
@@ -140,7 +144,11 @@ class Dslh
           value_buf.puts(i < (value.length - 1) ? ',' : '')
         end
 
-        value_buf.puts(indent + ']')
+        if newline
+          value_buf.puts(indent + ']')
+        else
+          value_buf.print(indent + ']')
+        end
       elsif value.length == 1
         value_buf.puts(' ' + value.inspect)
       else

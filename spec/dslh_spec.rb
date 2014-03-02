@@ -688,7 +688,13 @@ Resources do
             Resource do
               Fn__Join [
                 "",
-                ["arn:aws:s3:::", {"Ref"=>"S3Bucket"}, "/*"]
+                [
+                  "arn:aws:s3:::",
+                  _{
+                    Ref "S3Bucket"
+                  },
+                  "/*"
+                ]
               ]
             end
             Principal do
@@ -917,80 +923,110 @@ Resources do
         Fn__Base64 do
           Fn__Join [
             "",
-            ["#!/bin/bash -v\n",
-             "yum update -y aws-cfn-bootstrap\n",
-             "# Helper function\n",
-             "function error_exit\n",
-             "{\n",
-             "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n",
-             "  exit 1\n",
-             "}\n",
-             "# Install Apache Web Server, MySQL and Drupal\n",
-             "/opt/aws/bin/cfn-init -s ",
-             {"Ref"=>"AWS::StackId"},
-             " -r LaunchConfig ",
-             "    --region ",
-             {"Ref"=>"AWS::Region"},
-             " || error_exit 'Failed to run cfn-init'\n",
-             "# Install s3fs\n",
-             "cd /home/ec2-user/s3fs/s3fs-1.61\n",
-             "./configure --prefix=/usr\n",
-             "make\n",
-             "make install\n",
-             "# Move the website files to the top level\n",
-             "mv /var/www/html/drupal-7.8/* /var/www/html\n",
-             "mv /var/www/html/drupal-7.8/.htaccess /var/www/html\n",
-             "rm -Rf /var/www/html/drupal-7.8\n",
-             "# Mount the S3 bucket\n",
-             "mv /var/www/html/sites/default/files /var/www/html/sites/default/files_original\n",
-             "mkdir -p /var/www/html/sites/default/files\n",
-             "s3fs -o allow_other -o use_cache=/tmp ",
-             {"Ref"=>"S3Bucket"},
-             " /var/www/html/sites/default/files || error_exit 'Failed to mount the S3 bucket'\n",
-             "echo `hostname` >> /var/www/html/sites/default/files/hosts\n",
-             "# Make changes to Apache Web Server configuration\n",
-             "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
-             "service httpd restart\n",
-             "# Only execute the site install if we are the first host up - otherwise we'll end up losing all the data\n",
-             "read first < /var/www/html/sites/default/files/hosts\n",
-             "if [ `hostname` = $first ]\n",
-             "then\n",
-             "  # Create the site in Drupal\n",
-             "  cd /var/www/html\n",
-             "  ~ec2-user/drush/drush site-install standard --yes",
-             "     --site-name='",
-             {"Ref"=>"SiteName"},
-             "' --site-mail=",
-             {"Ref"=>"SiteEMail"},
-             "     --account-name=",
-             {"Ref"=>"SiteAdmin"},
-             " --account-pass=",
-             {"Ref"=>"SitePassword"},
-             "     --db-url=mysql://",
-             {"Ref"=>"DBUsername"},
-             ":",
-             {"Ref"=>"DBPassword"},
-             "@",
-             {"Fn::GetAtt"=>["DBInstance", "Endpoint.Address"]},
-             ":",
-             {"Fn::GetAtt"=>["DBInstance", "Endpoint.Port"]},
-             "/",
-             {"Ref"=>"DBName"},
-             "     --db-prefix=drupal_\n",
-             "  # use the S3 bucket for shared file storage\n",
-             "  cp -R sites/default/files_original/* sites/default/files\n",
-             "  cp -R sites/default/files_original/.htaccess sites/default/files\n",
-             "else\n",
-             "  # Copy settings.php file since everything else is configured\n",
-             "  cp /home/ec2-user/settings.php /var/www/html/sites/default\n",
-             "fi\n",
-             "rm /home/ec2-user/settings.php\n",
-             "# All is well so signal success\n",
-             "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n"]
+            [
+              "#!/bin/bash -v\n",
+              "yum update -y aws-cfn-bootstrap\n",
+              "# Helper function\n",
+              "function error_exit\n",
+              "{\n",
+              "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n",
+              "  exit 1\n",
+              "}\n",
+              "# Install Apache Web Server, MySQL and Drupal\n",
+              "/opt/aws/bin/cfn-init -s ",
+              _{
+                Ref "AWS::StackId"
+              },
+              " -r LaunchConfig ",
+              "    --region ",
+              _{
+                Ref "AWS::Region"
+              },
+              " || error_exit 'Failed to run cfn-init'\n",
+              "# Install s3fs\n",
+              "cd /home/ec2-user/s3fs/s3fs-1.61\n",
+              "./configure --prefix=/usr\n",
+              "make\n",
+              "make install\n",
+              "# Move the website files to the top level\n",
+              "mv /var/www/html/drupal-7.8/* /var/www/html\n",
+              "mv /var/www/html/drupal-7.8/.htaccess /var/www/html\n",
+              "rm -Rf /var/www/html/drupal-7.8\n",
+              "# Mount the S3 bucket\n",
+              "mv /var/www/html/sites/default/files /var/www/html/sites/default/files_original\n",
+              "mkdir -p /var/www/html/sites/default/files\n",
+              "s3fs -o allow_other -o use_cache=/tmp ",
+              _{
+                Ref "S3Bucket"
+              },
+              " /var/www/html/sites/default/files || error_exit 'Failed to mount the S3 bucket'\n",
+              "echo `hostname` >> /var/www/html/sites/default/files/hosts\n",
+              "# Make changes to Apache Web Server configuration\n",
+              "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
+              "service httpd restart\n",
+              "# Only execute the site install if we are the first host up - otherwise we'll end up losing all the data\n",
+              "read first < /var/www/html/sites/default/files/hosts\n",
+              "if [ `hostname` = $first ]\n",
+              "then\n",
+              "  # Create the site in Drupal\n",
+              "  cd /var/www/html\n",
+              "  ~ec2-user/drush/drush site-install standard --yes",
+              "     --site-name='",
+              _{
+                Ref "SiteName"
+              },
+              "' --site-mail=",
+              _{
+                Ref "SiteEMail"
+              },
+              "     --account-name=",
+              _{
+                Ref "SiteAdmin"
+              },
+              " --account-pass=",
+              _{
+                Ref "SitePassword"
+              },
+              "     --db-url=mysql://",
+              _{
+                Ref "DBUsername"
+              },
+              ":",
+              _{
+                Ref "DBPassword"
+              },
+              "@",
+              _{
+                Fn__GetAtt "DBInstance", "Endpoint.Address"
+              },
+              ":",
+              _{
+                Fn__GetAtt "DBInstance", "Endpoint.Port"
+              },
+              "/",
+              _{
+                Ref "DBName"
+              },
+              "     --db-prefix=drupal_\n",
+              "  # use the S3 bucket for shared file storage\n",
+              "  cp -R sites/default/files_original/* sites/default/files\n",
+              "  cp -R sites/default/files_original/.htaccess sites/default/files\n",
+              "else\n",
+              "  # Copy settings.php file since everything else is configured\n",
+              "  cp /home/ec2-user/settings.php /var/www/html/sites/default\n",
+              "fi\n",
+              "rm /home/ec2-user/settings.php\n",
+              "# All is well so signal success\n",
+              "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n"
+            ]
           ]
         end
       end
@@ -1082,7 +1118,12 @@ Outputs do
     Value do
       Fn__Join [
         "",
-        ["http://", {"Fn::GetAtt"=>["ElasticLoadBalancer", "DNSName"]}]
+        [
+          "http://",
+          _{
+            Fn__GetAtt "ElasticLoadBalancer", "DNSName"
+          }
+        ]
       ]
     end
     Description "Drupal Website"
@@ -1284,7 +1325,13 @@ Resources do
             Resource do
               Fn__Join [
                 "",
-                ["arn:aws:s3:::", {"Ref"=>"S3Bucket"}, "/*"]
+                [
+                  "arn:aws:s3:::",
+                  _{
+                    Ref "S3Bucket"
+                  },
+                  "/*"
+                ]
               ]
             end
             Principal do
@@ -1416,7 +1463,16 @@ Resources do
               content do
                 Fn__Join [
                   "",
-                  [{"Ref"=>"S3Keys"}, ":", {"Fn::GetAtt"=>["S3Keys", "SecretAccessKey"]}, "\n"]
+                  [
+                    _{
+                      Ref "S3Keys"
+                    },
+                    ":",
+                    _{
+                      Fn__GetAtt "S3Keys", "SecretAccessKey"
+                    },
+                    "\n"
+                  ]
                 ]
               end
               mode "000400"
@@ -1427,42 +1483,54 @@ Resources do
               content do
                 Fn__Join [
                   "",
-                  ["<?php\n",
-                   "\n",
-                   "$databases = array (\n",
-                   "  'default' =>\n",
-                   "  array (\n",
-                   "    'default' =>\n",
-                   "    array (\n",
-                   "      'database' => '",
-                   {"Ref"=>"DBName"},
-                   "',\n",
-                   "      'username' => '",
-                   {"Ref"=>"DBUsername"},
-                   "',\n",
-                   "      'password' => '",
-                   {"Ref"=>"DBPassword"},
-                   "',\n",
-                   "      'host' => '",
-                   {"Fn::GetAtt"=>["DBInstance", "Endpoint.Address"]},
-                   "',\n",
-                   "      'port' => '",
-                   {"Fn::GetAtt"=>["DBInstance", "Endpoint.Port"]},
-                   "',\n",
-                   "      'driver' => 'mysql',\n",
-                   "      'prefix' => 'drupal_',\n",
-                   "    ),\n",
-                   "  ),\n",
-                   ");\n",
-                   "\n",
-                   "$update_free_access = FALSE;\n",
-                   "\n",
-                   "$drupal_hash_salt = '0c3R8noNALe3shsioQr5hK1dMHdwRfikLoSfqn0_xpA';\n",
-                   "\n",
-                   "ini_set('session.gc_probability', 1);\n",
-                   "ini_set('session.gc_divisor', 100);\n",
-                   "ini_set('session.gc_maxlifetime', 200000);\n",
-                   "ini_set('session.cookie_lifetime', 2000000);\n"]
+                  [
+                    "<?php\n",
+                    "\n",
+                    "$databases = array (\n",
+                    "  'default' =>\n",
+                    "  array (\n",
+                    "    'default' =>\n",
+                    "    array (\n",
+                    "      'database' => '",
+                    _{
+                      Ref "DBName"
+                    },
+                    "',\n",
+                    "      'username' => '",
+                    _{
+                      Ref "DBUsername"
+                    },
+                    "',\n",
+                    "      'password' => '",
+                    _{
+                      Ref "DBPassword"
+                    },
+                    "',\n",
+                    "      'host' => '",
+                    _{
+                      Fn__GetAtt "DBInstance", "Endpoint.Address"
+                    },
+                    "',\n",
+                    "      'port' => '",
+                    _{
+                      Fn__GetAtt "DBInstance", "Endpoint.Port"
+                    },
+                    "',\n",
+                    "      'driver' => 'mysql',\n",
+                    "      'prefix' => 'drupal_',\n",
+                    "    ),\n",
+                    "  ),\n",
+                    ");\n",
+                    "\n",
+                    "$update_free_access = FALSE;\n",
+                    "\n",
+                    "$drupal_hash_salt = '0c3R8noNALe3shsioQr5hK1dMHdwRfikLoSfqn0_xpA';\n",
+                    "\n",
+                    "ini_set('session.gc_probability', 1);\n",
+                    "ini_set('session.gc_divisor', 100);\n",
+                    "ini_set('session.gc_maxlifetime', 200000);\n",
+                    "ini_set('session.cookie_lifetime', 2000000);\n"
+                  ]
                 ]
               end
               mode "000400"
@@ -1518,80 +1586,110 @@ Resources do
         Fn__Base64 do
           Fn__Join [
             "",
-            ["#!/bin/bash -v\n",
-             "yum update -y aws-cfn-bootstrap\n",
-             "# Helper function\n",
-             "function error_exit\n",
-             "{\n",
-             "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n",
-             "  exit 1\n",
-             "}\n",
-             "# Install Apache Web Server, MySQL and Drupal\n",
-             "/opt/aws/bin/cfn-init -s ",
-             {"Ref"=>"AWS::StackId"},
-             " -r LaunchConfig ",
-             "    --region ",
-             {"Ref"=>"AWS::Region"},
-             " || error_exit 'Failed to run cfn-init'\n",
-             "# Install s3fs\n",
-             "cd /home/ec2-user/s3fs/s3fs-1.61\n",
-             "./configure --prefix=/usr\n",
-             "make\n",
-             "make install\n",
-             "# Move the website files to the top level\n",
-             "mv /var/www/html/drupal-7.8/* /var/www/html\n",
-             "mv /var/www/html/drupal-7.8/.htaccess /var/www/html\n",
-             "rm -Rf /var/www/html/drupal-7.8\n",
-             "# Mount the S3 bucket\n",
-             "mv /var/www/html/sites/default/files /var/www/html/sites/default/files_original\n",
-             "mkdir -p /var/www/html/sites/default/files\n",
-             "s3fs -o allow_other -o use_cache=/tmp ",
-             {"Ref"=>"S3Bucket"},
-             " /var/www/html/sites/default/files || error_exit 'Failed to mount the S3 bucket'\n",
-             "echo `hostname` >> /var/www/html/sites/default/files/hosts\n",
-             "# Make changes to Apache Web Server configuration\n",
-             "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
-             "service httpd restart\n",
-             "# Only execute the site install if we are the first host up - otherwise we'll end up losing all the data\n",
-             "read first < /var/www/html/sites/default/files/hosts\n",
-             "if [ `hostname` = $first ]\n",
-             "then\n",
-             "  # Create the site in Drupal\n",
-             "  cd /var/www/html\n",
-             "  ~ec2-user/drush/drush site-install standard --yes",
-             "     --site-name='",
-             {"Ref"=>"SiteName"},
-             "' --site-mail=",
-             {"Ref"=>"SiteEMail"},
-             "     --account-name=",
-             {"Ref"=>"SiteAdmin"},
-             " --account-pass=",
-             {"Ref"=>"SitePassword"},
-             "     --db-url=mysql://",
-             {"Ref"=>"DBUsername"},
-             ":",
-             {"Ref"=>"DBPassword"},
-             "@",
-             {"Fn::GetAtt"=>["DBInstance", "Endpoint.Address"]},
-             ":",
-             {"Fn::GetAtt"=>["DBInstance", "Endpoint.Port"]},
-             "/",
-             {"Ref"=>"DBName"},
-             "     --db-prefix=drupal_\n",
-             "  # use the S3 bucket for shared file storage\n",
-             "  cp -R sites/default/files_original/* sites/default/files\n",
-             "  cp -R sites/default/files_original/.htaccess sites/default/files\n",
-             "else\n",
-             "  # Copy settings.php file since everything else is configured\n",
-             "  cp /home/ec2-user/settings.php /var/www/html/sites/default\n",
-             "fi\n",
-             "rm /home/ec2-user/settings.php\n",
-             "# All is well so signal success\n",
-             "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n"]
+            [
+              "#!/bin/bash -v\n",
+              "yum update -y aws-cfn-bootstrap\n",
+              "# Helper function\n",
+              "function error_exit\n",
+              "{\n",
+              "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n",
+              "  exit 1\n",
+              "}\n",
+              "# Install Apache Web Server, MySQL and Drupal\n",
+              "/opt/aws/bin/cfn-init -s ",
+              _{
+                Ref "AWS::StackId"
+              },
+              " -r LaunchConfig ",
+              "    --region ",
+              _{
+                Ref "AWS::Region"
+              },
+              " || error_exit 'Failed to run cfn-init'\n",
+              "# Install s3fs\n",
+              "cd /home/ec2-user/s3fs/s3fs-1.61\n",
+              "./configure --prefix=/usr\n",
+              "make\n",
+              "make install\n",
+              "# Move the website files to the top level\n",
+              "mv /var/www/html/drupal-7.8/* /var/www/html\n",
+              "mv /var/www/html/drupal-7.8/.htaccess /var/www/html\n",
+              "rm -Rf /var/www/html/drupal-7.8\n",
+              "# Mount the S3 bucket\n",
+              "mv /var/www/html/sites/default/files /var/www/html/sites/default/files_original\n",
+              "mkdir -p /var/www/html/sites/default/files\n",
+              "s3fs -o allow_other -o use_cache=/tmp ",
+              _{
+                Ref "S3Bucket"
+              },
+              " /var/www/html/sites/default/files || error_exit 'Failed to mount the S3 bucket'\n",
+              "echo `hostname` >> /var/www/html/sites/default/files/hosts\n",
+              "# Make changes to Apache Web Server configuration\n",
+              "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
+              "service httpd restart\n",
+              "# Only execute the site install if we are the first host up - otherwise we'll end up losing all the data\n",
+              "read first < /var/www/html/sites/default/files/hosts\n",
+              "if [ `hostname` = $first ]\n",
+              "then\n",
+              "  # Create the site in Drupal\n",
+              "  cd /var/www/html\n",
+              "  ~ec2-user/drush/drush site-install standard --yes",
+              "     --site-name='",
+              _{
+                Ref "SiteName"
+              },
+              "' --site-mail=",
+              _{
+                Ref "SiteEMail"
+              },
+              "     --account-name=",
+              _{
+                Ref "SiteAdmin"
+              },
+              " --account-pass=",
+              _{
+                Ref "SitePassword"
+              },
+              "     --db-url=mysql://",
+              _{
+                Ref "DBUsername"
+              },
+              ":",
+              _{
+                Ref "DBPassword"
+              },
+              "@",
+              _{
+                Fn__GetAtt "DBInstance", "Endpoint.Address"
+              },
+              ":",
+              _{
+                Fn__GetAtt "DBInstance", "Endpoint.Port"
+              },
+              "/",
+              _{
+                Ref "DBName"
+              },
+              "     --db-prefix=drupal_\n",
+              "  # use the S3 bucket for shared file storage\n",
+              "  cp -R sites/default/files_original/* sites/default/files\n",
+              "  cp -R sites/default/files_original/.htaccess sites/default/files\n",
+              "else\n",
+              "  # Copy settings.php file since everything else is configured\n",
+              "  cp /home/ec2-user/settings.php /var/www/html/sites/default\n",
+              "fi\n",
+              "rm /home/ec2-user/settings.php\n",
+              "# All is well so signal success\n",
+              "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n"
+            ]
           ]
         end
       end
@@ -1683,7 +1781,12 @@ Outputs do
     Value do
       Fn__Join [
         "",
-        ["http://", {"Fn::GetAtt"=>["ElasticLoadBalancer", "DNSName"]}]
+        [
+          "http://",
+          _{
+            Fn__GetAtt "ElasticLoadBalancer", "DNSName"
+          }
+        ]
       ]
     end
     Description "Drupal Website"
@@ -1874,20 +1977,32 @@ Resources do
               content do
                 Fn__Join [
                   "",
-                  ["CREATE DATABASE ",
-                   {"Ref"=>"DBName"},
-                   ";\n",
-                   "CREATE USER '",
-                   {"Ref"=>"DBUsername"},
-                   "'@'localhost' IDENTIFIED BY '",
-                   {"Ref"=>"DBPassword"},
-                   "';\n",
-                   "GRANT ALL ON ",
-                   {"Ref"=>"DBName"},
-                   ".* TO '",
-                   {"Ref"=>"DBUsername"},
-                   "'@'localhost';\n",
-                   "FLUSH PRIVILEGES;\n"]
+                  [
+                    "CREATE DATABASE ",
+                    _{
+                      Ref "DBName"
+                    },
+                    ";\n",
+                    "CREATE USER '",
+                    _{
+                      Ref "DBUsername"
+                    },
+                    "'@'localhost' IDENTIFIED BY '",
+                    _{
+                      Ref "DBPassword"
+                    },
+                    "';\n",
+                    "GRANT ALL ON ",
+                    _{
+                      Ref "DBName"
+                    },
+                    ".* TO '",
+                    _{
+                      Ref "DBUsername"
+                    },
+                    "'@'localhost';\n",
+                    "FLUSH PRIVILEGES;\n"
+                  ]
                 ]
               end
               mode "000644"
@@ -1947,59 +2062,87 @@ Resources do
         Fn__Base64 do
           Fn__Join [
             "",
-            ["#!/bin/bash -v\n",
-             "yum update -y aws-cfn-bootstrap\n",
-             "# Helper function\n",
-             "function error_exit\n",
-             "{\n",
-             "  /opt/aws/bin/cfn-signal -e 0 -r \"$1\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n",
-             "  exit 1\n",
-             "}\n",
-             "# Install Apache Web Server, MySQL, PHP and Drupal\n",
-             "/opt/aws/bin/cfn-init -s ",
-             {"Ref"=>"AWS::StackId"},
-             " -r WebServer ",
-             "    --region ",
-             {"Ref"=>"AWS::Region"},
-             " || error_exit 'Failed to run cfn-init'\n",
-             "# Setup MySQL root password and create a user\n",
-             "mysqladmin -u root password '",
-             {"Ref"=>"DBRootPassword"},
-             "' || error_exit 'Failed to initialize root password'\n",
-             "mysql -u root --password='",
-             {"Ref"=>"DBRootPassword"},
-             "' < /tmp/setup.mysql || error_exit 'Failed to create database user'\n",
-             "# Make changes to Apache Web Server configuration\n",
-             "mv /var/www/html/drupal-7.8/* /var/www/html\n",
-             "mv /var/www/html/drupal-7.8/.* /var/www/html\n",
-             "rmdir /var/www/html/drupal-7.8\n",
-             "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
-             "service httpd restart\n",
-             "# Create the site in Drupal\n",
-             "cd /var/www/html\n",
-             "~ec2-user/drush/drush site-install standard --yes",
-             "     --site-name='",
-             {"Ref"=>"SiteName"},
-             "' --site-mail=",
-             {"Ref"=>"SiteEMail"},
-             "     --account-name=",
-             {"Ref"=>"SiteAdmin"},
-             " --account-pass=",
-             {"Ref"=>"SitePassword"},
-             "     --db-url=mysql://",
-             {"Ref"=>"DBUsername"},
-             ":",
-             {"Ref"=>"DBPassword"},
-             "@localhost/",
-             {"Ref"=>"DBName"},
-             "     --db-prefix=drupal_\n",
-             "chown apache:apache sites/default/files\n",
-             "# All is well so signal success\n",
-             "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
-             {"Ref"=>"WaitHandle"},
-             "'\n"]
+            [
+              "#!/bin/bash -v\n",
+              "yum update -y aws-cfn-bootstrap\n",
+              "# Helper function\n",
+              "function error_exit\n",
+              "{\n",
+              "  /opt/aws/bin/cfn-signal -e 0 -r \"$1\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n",
+              "  exit 1\n",
+              "}\n",
+              "# Install Apache Web Server, MySQL, PHP and Drupal\n",
+              "/opt/aws/bin/cfn-init -s ",
+              _{
+                Ref "AWS::StackId"
+              },
+              " -r WebServer ",
+              "    --region ",
+              _{
+                Ref "AWS::Region"
+              },
+              " || error_exit 'Failed to run cfn-init'\n",
+              "# Setup MySQL root password and create a user\n",
+              "mysqladmin -u root password '",
+              _{
+                Ref "DBRootPassword"
+              },
+              "' || error_exit 'Failed to initialize root password'\n",
+              "mysql -u root --password='",
+              _{
+                Ref "DBRootPassword"
+              },
+              "' < /tmp/setup.mysql || error_exit 'Failed to create database user'\n",
+              "# Make changes to Apache Web Server configuration\n",
+              "mv /var/www/html/drupal-7.8/* /var/www/html\n",
+              "mv /var/www/html/drupal-7.8/.* /var/www/html\n",
+              "rmdir /var/www/html/drupal-7.8\n",
+              "sed -i 's/AllowOverride None/AllowOverride All/g'  /etc/httpd/conf/httpd.conf\n",
+              "service httpd restart\n",
+              "# Create the site in Drupal\n",
+              "cd /var/www/html\n",
+              "~ec2-user/drush/drush site-install standard --yes",
+              "     --site-name='",
+              _{
+                Ref "SiteName"
+              },
+              "' --site-mail=",
+              _{
+                Ref "SiteEMail"
+              },
+              "     --account-name=",
+              _{
+                Ref "SiteAdmin"
+              },
+              " --account-pass=",
+              _{
+                Ref "SitePassword"
+              },
+              "     --db-url=mysql://",
+              _{
+                Ref "DBUsername"
+              },
+              ":",
+              _{
+                Ref "DBPassword"
+              },
+              "@localhost/",
+              _{
+                Ref "DBName"
+              },
+              "     --db-prefix=drupal_\n",
+              "chown apache:apache sites/default/files\n",
+              "# All is well so signal success\n",
+              "/opt/aws/bin/cfn-signal -e 0 -r \"Drupal setup complete\" '",
+              _{
+                Ref "WaitHandle"
+              },
+              "'\n"
+            ]
           ]
         end
       end
@@ -2046,7 +2189,12 @@ Outputs do
     Value do
       Fn__Join [
         "",
-        ["http://", {"Fn::GetAtt"=>["WebServer", "PublicDnsName"]}]
+        [
+          "http://",
+          _{
+            Fn__GetAtt "WebServer", "PublicDnsName"
+          }
+        ]
       ]
     end
     Description "Drupal Website"
