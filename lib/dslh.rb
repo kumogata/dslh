@@ -39,6 +39,8 @@ class Dslh
 
   def initialize(options = {})
     @options = options.dup
+    @options[:key_conv] ||= @options[:conv]
+    @options[:value_conv] ||= @options[:conv]
   end
 
   def eval(expr = nil, &block)
@@ -74,11 +76,11 @@ class Dslh
   def deval0(hash, depth, buf)
     indent = (INDENT_SPACES * depth)
     next_indent = (INDENT_SPACES * (depth + 1))
-    key_conv = @options[:key_conv] || @options[:conv]
-    value_conv = @options[:value_conv] || @options[:conv]
+    key_conv = @options[:key_conv]
+    value_conv = @options[:value_conv]
     nested = false
 
-    if exclude_key?(key_conv, hash.keys)
+    if exclude_key?(hash.keys)
       buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
       return
     end
@@ -87,7 +89,7 @@ class Dslh
       value_proc = proc do |value_buf|
         case value
         when Hash
-          if exclude_key?(key_conv, value.keys)
+          if exclude_key?(value.keys)
             value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
           else
             nested = true
@@ -155,12 +157,13 @@ class Dslh
     end
   end
 
-  def exclude_key?(key_conv, keys)
-    exclude_key = @options[:exclude_key] || proc {|k| k.to_s !~ /\A[_a-z]\w+\Z/i }
+  def exclude_key?(keys)
+    key_conv = @options[:key_conv]
 
-    if not @options.has_key?(:exclude_key) and key_conv
-      keys = keys.map {|k| key_conv.call(k) }
-    end
+    exclude_key = @options[:exclude_key] || proc {|k|
+      k = key_conv.call(k) if key_conv
+      k.to_s !~ /\A[_a-z]\w+\Z/i
+    }
 
     keys.any? {|k| exclude_key.call(k) }
   end
@@ -171,8 +174,8 @@ class Dslh
     end
 
     def method_missing(method_name, *args, &block)
-      key_conv = @__options__[:key_conv] || @__options__[:conv]
-      value_conv = @__options__[:value_conv] || @__options__[:conv]
+      key_conv = @__options__[:key_conv]
+      value_conv = @__options__[:value_conv]
       nested_hash = ScopeBlock.nest(binding, 'block')
       method_name = key_conv.call(method_name) if key_conv
 
