@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['sugawara@cookpad.com']
   spec.summary       = %q{It define Hash as a DSL.}
   spec.description   = %q{It define Hash as a DSL.}
-  spec.homepage      = 'https://bitbucket.org/winebarrel/dslh'
+  spec.homepage      = 'https://github.com/winebarrel/dslh'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z`.split("\x0")
