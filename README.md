@@ -2,8 +2,8 @@
 
 It define Hash as a DSL.
 
-[![Gem Version](https://badge.fury.io/rb/dslh.png?201403022334)](http://badge.fury.io/rb/dslh)
-[![Build Status](https://drone.io/github.com/winebarrel/dslh/status.png?201403022334)](https://drone.io/github.com/winebarrel/dslh/latest)
+[![Gem Version](https://badge.fury.io/rb/dslh.png?201403041920)](http://badge.fury.io/rb/dslh)
+[![Build Status](https://drone.io/github.com/winebarrel/dslh/status.png?201403041920)](https://drone.io/github.com/winebarrel/dslh/latest)
 
 ## Installation
 
