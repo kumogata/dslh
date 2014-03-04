@@ -189,7 +189,7 @@ class Dslh
     def method_missing(method_name, *args, &block)
       key_conv = @__options__[:key_conv]
       value_conv = @__options__[:value_conv]
-      nested_hash = ScopeBlock.nest(binding, 'block')
+      nested_hash = ScopeBlock.nest(binding, 'block', method_name)
       method_name = key_conv.call(method_name) if key_conv
 
       if args.empty?
@@ -212,12 +212,32 @@ class Dslh
   end # of Scope
 
   class ScopeBlock
-    def self.nest(bind, block_var)
+    def self.nest(bind, block_var, key = nil)
+      block_call = nil
+
+      if key
+        block_call = <<-EOS
+          #{block_var}_ = proc do
+            if #{block_var}.arity.zero?
+              #{block_var}.call
+            else
+              #{block_var}.call(#{key.inspect})
+            end
+          end
+
+          self.instance_eval(&#{block_var}_)
+        EOS
+      else
+        block_call = <<-EOS
+          self.instance_eval(&#{block_var})
+        EOS
+      end
+
       eval(<<-EOS, bind)
         if #{block_var}
           __hash_orig = @__hash__
           @__hash__ = {}
-          self.instance_eval(&#{block_var})
+          #{block_call}
           __nested_hash = @__hash__
           @__hash__ = __hash_orig
           __nested_hash
