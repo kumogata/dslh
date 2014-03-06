@@ -55,6 +55,37 @@ describe Dslh do
     )
   end
 
+  it 'should be nested hash with _()' do
+    h = Dslh.eval do
+      key1 'value'
+      key2 100
+
+      _(:key3) do
+        _(:key31) do
+          key311 100
+          key312 '200'
+        end
+
+        _('key32') do
+          key321 do
+            key3211 'XXX'
+            key3212 :XXX
+          end
+          key322 300
+        end
+      end
+    end
+
+    expect(h).to eq(
+      {:key1=>"value",
+       :key2=>100,
+       :key3=>
+        {:key31=>{:key311=>100, :key312=>"200"},
+         'key32'=>
+          {:key321=>{:key3211=>"XXX", :key3212=>:XXX}, :key322=>300}}}
+    )
+  end
+
   it 'should be nested hash with block args' do
     h = Dslh.eval do
       key1 'value'

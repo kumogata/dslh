@@ -182,8 +182,16 @@ class Dslh
   end
 
   class Scope
-    def _(&block)
-      ScopeBlock.nest(binding, 'block')
+    def _(key = nil, &block)
+      nested_hash = ScopeBlock.nest(binding, 'block')
+
+      if key
+        key_conv = @__options__[:key_conv]
+        key = key_conv.call(key) if key_conv
+        @__hash__[key] = nested_hash
+      else
+        return nested_hash
+      end
     end
 
     def method_missing(method_name, *args, &block)
