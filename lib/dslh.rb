@@ -188,6 +188,11 @@ class Dslh
       if key
         key_conv = @__options__[:key_conv]
         key = key_conv.call(key) if key_conv
+
+        if not @__options__[:allow_duplicate] and @__hash__.has_key?(key)
+          raise "duplicate key #{key.inspect}"
+        end
+
         @__hash__[key] = nested_hash
       else
         return nested_hash
@@ -199,6 +204,10 @@ class Dslh
       value_conv = @__options__[:value_conv]
       nested_hash = ScopeBlock.nest(binding, 'block', method_name)
       method_name = key_conv.call(method_name) if key_conv
+
+      if not @__options__[:allow_duplicate] and @__hash__.has_key?(method_name)
+        raise "duplicate key #{method_name.inspect}"
+      end
 
       if args.empty?
         @__hash__[method_name] = nested_hash
