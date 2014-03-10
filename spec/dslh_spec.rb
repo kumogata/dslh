@@ -523,6 +523,74 @@ end
     EOS
   end
 
+  it 'does not allow duplicate key' do
+    expect {
+      Dslh.eval do
+        key1 'value'
+        key2 100
+
+        key2 do
+          key31 "value31" do
+            key311 100
+            key312 '200'
+          end
+
+          key32 do
+            key321 "value321" do
+              key3211 'XXX'
+              key3212 :XXX
+            end
+            key322 300
+          end
+        end
+      end
+    }.to raise_error('duplicate key :key2')
+
+    expect {
+      Dslh.eval do
+        key1 'value'
+        key2 100
+
+        key3 do
+          key31 "value31" do
+            key311 100
+            key312 '200'
+          end
+
+          key31 do
+            key321 "value321" do
+              key3211 'XXX'
+              key3212 :XXX
+            end
+            key322 300
+          end
+        end
+      end
+    }.to raise_error('duplicate key :key31')
+
+    expect {
+      Dslh.eval do
+        key1 'value'
+        key2 100
+
+        key3 do
+          key31 "value31" do
+            key311 100
+            key311 '200'
+          end
+
+          key32 do
+            key321 "value321" do
+              key3211 'XXX'
+              key3212 :XXX
+            end
+            key322 300
+          end
+        end
+      end
+    }.to raise_error('duplicate key :key311')
+  end
+
   it 'should convert hash to dsl with value_conv' do
     h = {"glossary"=>
           {"title"=>"example glossary",
