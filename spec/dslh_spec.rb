@@ -659,6 +659,63 @@ end
     }.to_not raise_error
   end
 
+  it 'does not allow empty args' do
+    expect {
+      Dslh.eval do
+        key1 'value'
+        key2 100
+
+        key3 do
+          key31 "value31" do
+            key311
+            key312 '200'
+          end
+
+          key32 do
+            key321 "value321" do
+              key3211 'XXX'
+              key3212 :XXX
+            end
+            key322 300
+          end
+        end
+      end
+    }.to raise_error(NameError)
+  end
+
+  it 'does allow empty args' do
+    expect {
+      h = Dslh.eval(:allow_empty_args => true) do
+        key1 'value'
+        key2 100
+
+        key3 do
+          key31 "value31" do
+            key311
+            key312 '200'
+          end
+
+          key32 do
+            key321 "value321" do
+              key3211 'XXX'
+              key3212 :XXX
+            end
+            key322 300
+          end
+        end
+      end
+
+      expect(h).to eq(
+        {:key1=>"value",
+         :key2=>100,
+         :key3=>
+          {:key31=>{"value31"=>{:key311=>nil, :key312=>"200"}},
+           :key32=>
+            {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+      )
+    }.to_not raise_error
+  end
+
   it 'should convert hash to dsl with value_conv' do
     h = {"glossary"=>
           {"title"=>"example glossary",
