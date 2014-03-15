@@ -197,11 +197,15 @@ class Dslh
     def method_missing(method_name, *args, &block)
       key_conv = @__options__[:key_conv]
       value_conv = @__options__[:value_conv]
-      nested_hash = ScopeBlock.nest(binding, 'block', method_name)
+      nested_hash = block ? ScopeBlock.nest(binding, 'block', method_name) : nil
       method_name = key_conv.call(method_name) if key_conv
 
       if args.empty?
-        @__hash__[method_name] = nested_hash
+        if block
+          @__hash__[method_name] = nested_hash
+        else
+          super
+        end
       else
         args = args.map {|i| value_conv.call(i) } if value_conv
         value = args.length > 1 ? args : args[0]
