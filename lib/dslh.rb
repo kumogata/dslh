@@ -115,7 +115,7 @@ class Dslh
 
     case value
     when Hash
-      if exclude_keys?(value.keys)
+      if exclude_keys?(value.keys) or value.values.any? {|v| v == [] }
         value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
       else
         nested = true
