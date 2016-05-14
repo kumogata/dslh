@@ -2500,4 +2500,34 @@ glossary do
 end
     EOS
   end
+
+  it 'include "system()"' do
+    h = Dslh.eval(:ignore_methods => [:system]) do
+      system do
+        key1 'value'
+        key2 100
+
+        key3(
+          100   => 200,
+          'XXX' => :XXX
+        )
+
+        key4 do
+          system(
+            '300' => '400',
+            :FOO  => :BAR
+          )
+          key42 100
+        end
+      end
+    end
+
+    expect(h).to eq(
+      {"system"=>
+        {:key1=>"value",
+         :key2=>100,
+         :key3=>{100=>200, "XXX"=>:XXX},
+         :key4=>{"system"=>{"300"=>"400", :FOO=>:BAR}, :key42=>100}}}
+    )
+  end
 end

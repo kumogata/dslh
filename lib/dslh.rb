@@ -50,6 +50,18 @@ class Dslh
     scope.instance_variable_set(:@__hash__, retval)
     @options[:scope_hook].call(scope) if @options[:scope_hook]
 
+    if @options[:ignore_methods]
+      ignore_methods = Array(@options[:ignore_methods])
+
+      ignore_methods.each do |method_name|
+        scope.instance_eval(<<-EOS)
+          def #{method_name}(*args, &block)
+            method_missing(#{method_name.to_s.inspect}, *args, &block)
+          end
+        EOS
+      end
+    end
+
     if expr
       eval_args = [expr]
 
