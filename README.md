@@ -102,32 +102,25 @@ h = {"glossary"=>
                "GlossSeeAlso"=>["GML", "XML"]},
              "GlossSee"=>"markup"}}}}}
 
-puts Dslh.deval(h) # => glossary do
-                   #      title "example glossary"
-                   #      GlossDiv do
-                   #        title "S"
-                   #        GlossList do
-                   #          GlossEntry do
-                   #            ID "SGML"
-                   #            SortAs "SGML"
-                   #            GlossTerm "Standard Generalized Markup Language"
-                   #            Acronym "SGML"
-                   #            Abbrev "ISO 8879:1986"
-                   #            GlossDef do
-                   #              para "A meta-markup language, used to create markup languages such as DocBook."
-                   #              GlossSeeAlso "GML", "XML"
-                   #            end
-                   #            GlossSee "markup"
-                   #          end
-                   #        end
-                   #      end
-                   #    end
+puts Dslh.deval(h)
+# => glossary do
+#      title "example glossary"
+#      GlossDiv do
+#        title "S"
+#        GlossList do
+#          GlossEntry do
+#            ID "SGML"
+#            SortAs "SGML"
+#            GlossTerm "Standard Generalized Markup Language"
+#            Acronym "SGML"
+#            Abbrev "ISO 8879:1986"
+#            GlossDef do
+#              para "A meta-markup language, used to create markup languages such as DocBook."
+#              GlossSeeAlso "GML", "XML"
+#            end
+#            GlossSee "markup"
+#          end
+#        end
+#      end
+#    end
 ```
-
-## Contributing
-
-1. Fork it ( http://github.com/<my-github-username>/dslh/fork )
-2. Create your feature branch (`git checkout -b my-new-feature`)
-3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
