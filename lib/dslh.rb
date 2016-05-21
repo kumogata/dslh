@@ -39,7 +39,7 @@ class Dslh
 
   def initialize(options = {})
     @options = options.dup
-    @options[:key_conv] ||= @options[:conv]
+    @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
     @options[:value_conv] ||= @options[:conv]
   end
 

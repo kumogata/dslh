@@ -19,8 +19,8 @@ describe Dslh do
     end
 
     expect(h).to eq({
-      :key1 => 'value',
-      :key2 => 100,
+      'key1' => 'value',
+      'key2' => 100,
     })
   end
 
@@ -46,12 +46,12 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>
-        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
-         :key32=>
-          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+      {'key1'=>"value",
+       'key2'=>100,
+       'key3'=>
+        {'key31'=>{"value31"=>{'key311'=>100, 'key312'=>"200"}},
+         'key32'=>
+          {'key321'=>{"value321"=>{'key3211'=>"XXX", 'key3212'=>:XXX}}, 'key322'=>300}}}
     )
   end
 
@@ -77,12 +77,12 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>
-        {:key31=>{:key311=>100, :key312=>"200"},
+      {'key1'=>"value",
+       'key2'=>100,
+       'key3'=>
+        {'key31'=>{'key311'=>100, 'key312'=>"200"},
          'key32'=>
-          {:key321=>{:key3211=>"XXX", :key3212=>:XXX}, :key322=>300}}}
+          {'key321'=>{'key3211'=>"XXX", 'key3212'=>:XXX}, 'key322'=>300}}}
     )
   end
 
@@ -108,12 +108,12 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>
-        {:key31=>{"value31"=>{:key311=>100, :key312=>"200 key3 key31"}},
-         :key32=>
-          {:key321=>{"value321"=>{:key3211=>"XXX key3 key32 key321", :key3212=>:XXX}}, :key322=>300}}}
+      {'key1'=>"value",
+       'key2'=>100,
+       'key3'=>
+        {'key31'=>{"value31"=>{'key311'=>100, 'key312'=>"200 key3 key31"}},
+         'key32'=>
+          {'key321'=>{"value321"=>{'key3211'=>"XXX key3 key32 key321", 'key3212'=>:XXX}}, 'key322'=>300}}}
     )
   end
 
@@ -137,15 +137,79 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>{100=>200, "XXX"=>:XXX},
-       :key4=>{:key41=>{"300"=>"400", :FOO=>:BAR}, :key42=>100}}
+      {'key1'=>"value",
+       'key2'=>100,
+       'key3'=>{100=>200, "XXX"=>:XXX},
+       'key4'=>{'key41'=>{"300"=>"400", :FOO=>:BAR}, 'key42'=>100}}
     )
   end
 
   it 'should convert hash key/value' do
-    h = Dslh.eval :conv => proc {|i| i.to_s } do
+    h = Dslh.eval :conv => proc {|i| i.to_s.to_sym } do
+      key1 'value'
+      key2 100
+
+      key3 do
+        key31 "value31" do
+          key311 100
+          key312 '200'
+        end
+
+        key32 do
+          key321 "value321" do
+            key3211 'XXX'
+            key3212 :XXX
+          end
+          key322 300
+        end
+      end
+    end
+
+    expect(h).to eq(
+      {:key1=>:value,
+       :key2=>:"100",
+       :key3=>
+        {:key31=>{:value31=>{:key311=>:"100", :key312=>:"200"}},
+         :key32=>
+          {:key321=>{:value321=>{:key3211=>:XXX, :key3212=>:XXX}},
+           :key322=>:"300"}}}
+    )
+  end
+
+  it 'should convert hash key' do
+    h = Dslh.eval :key_conv => proc {|i| i.to_s.to_sym } do
+      key1 'value'
+      key2 100
+
+      key3 do
+        key31 "value31" do
+          key311 100
+          key312 '200'
+        end
+
+        key32 do
+          key321 "value321" do
+            key3211 'XXX'
+            key3212 :XXX
+          end
+          key322 300
+        end
+      end
+    end
+
+    expect(h).to eq(
+      {:key1=>"value",
+       :key2=>100,
+       :key3=>
+        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
+         :key32=>
+          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}},
+           :key322=>300}}}
+    )
+  end
+
+  it 'should convert hash value' do
+    h = Dslh.eval :value_conv => proc {|i| i.to_s } do
       key1 'value'
       key2 100
 
@@ -176,70 +240,6 @@ describe Dslh do
     )
   end
 
-  it 'should convert hash key' do
-    h = Dslh.eval :key_conv => proc {|i| i.to_s } do
-      key1 'value'
-      key2 100
-
-      key3 do
-        key31 "value31" do
-          key311 100
-          key312 '200'
-        end
-
-        key32 do
-          key321 "value321" do
-            key3211 'XXX'
-            key3212 :XXX
-          end
-          key322 300
-        end
-      end
-    end
-
-    expect(h).to eq(
-      {"key1"=>"value",
-       "key2"=>100,
-       "key3"=>
-        {"key31"=>{"value31"=>{"key311"=>100, "key312"=>"200"}},
-         "key32"=>
-          {"key321"=>{"value321"=>{"key3211"=>"XXX", "key3212"=>:XXX}},
-           "key322"=>300}}}
-    )
-  end
-
-  it 'should convert hash value' do
-    h = Dslh.eval :value_conv => proc {|i| i.to_s } do
-      key1 'value'
-      key2 100
-
-      key3 do
-        key31 "value31" do
-          key311 100
-          key312 '200'
-        end
-
-        key32 do
-          key321 "value321" do
-            key3211 'XXX'
-            key3212 :XXX
-          end
-          key322 300
-        end
-      end
-    end
-
-    expect(h).to eq(
-      {:key1=>"value",
-       :key2=>"100",
-       :key3=>
-        {:key31=>{"value31"=>{:key311=>"100", :key312=>"200"}},
-         :key32=>
-          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>"XXX"}},
-           :key322=>"300"}}}
-    )
-  end
-
   it 'can pass multiple argument' do
     h = Dslh.eval do
       key1 'value', 'value2'
@@ -257,10 +257,10 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>["value", "value2"],
-       :key2=>[100, 200],
-       :key3=>{:key31=>[:FOO, :BAR], :key32=>["ZOO", "BAZ"]},
-       :key4=>{["value4", "value42"]=>{:key41=>100, :key42=>"200"}}}
+      {"key1"=>["value", "value2"],
+       "key2"=>[100, 200],
+       "key3"=>{"key31"=>[:FOO, :BAR], "key32"=>["ZOO", "BAZ"]},
+       "key4"=>{["value4", "value42"]=>{"key41"=>100, "key42"=>"200"}}}
     )
   end
 
@@ -288,12 +288,12 @@ describe Dslh do
     h = Dslh.eval(expr)
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>
-        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
-         :key32=>
-          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+      {"key1"=>"value",
+       "key2"=>100,
+       "key3"=>
+        {"key31"=>{"value31"=>{"key311"=>100, "key312"=>"200"}},
+         "key32"=>
+          {"key321"=>{"value321"=>{"key3211"=>"XXX", "key3212"=>:XXX}}, "key322"=>300}}}
     )
   end
 
@@ -321,12 +321,12 @@ describe Dslh do
     h = Dslh.eval(expr, :filename => 'my.rb', :lineno => 100)
 
     expect(h).to eq(
-      {:key1=>"value",
-       :key2=>100,
-       :key3=>
-        {:key31=>{"value31"=>{:key311=>100, :key312=>"200"}},
-         :key32=>
-          {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+      {"key1"=>"value",
+       "key2"=>100,
+       "key3"=>
+        {"key31"=>{"value31"=>{"key311"=>100, "key312"=>"200"}},
+         "key32"=>
+          {"key321"=>{"value321"=>{"key3211"=>"XXX", "key3212"=>:XXX}}, "key322"=>300}}}
     )
   end
 
@@ -337,8 +337,8 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1 => ["value1", "value2"],
-       :key2 => ["100", "200"]}
+      {"key1" => ["value1", "value2"],
+       "key2" => ["100", "200"]}
     )
   end
 
@@ -365,10 +365,10 @@ describe Dslh do
     end
 
     expect(h).to eq(
-      {:key1=>"123",
-       :key2=>
-        {:key21=>"123", :key22=>{:key221=>"123", :key222=>"FOO"}, :key23=>"BAR"},
-       :key3=>"ZOO"}
+      {"key1"=>"123",
+       "key2"=>
+        {"key21"=>"123", "key22"=>{"key221"=>"123", "key222"=>"FOO"}, "key23"=>"BAR"},
+       "key3"=>"ZOO"}
     )
   end
 
@@ -391,7 +391,7 @@ describe Dslh do
       end
     end
 
-    expect(h).to eq({:key1=>123, :key2=>{:key21=>123, :key22=>{:key221=>123}}})
+    expect(h).to eq({"key1"=>123, "key2"=>{"key21"=>123, "key22"=>{"key221"=>123}}})
   end
 
   it 'should convert hash to dsl' do
@@ -544,7 +544,7 @@ end
           end
         end
       end
-    }.to raise_error('duplicate key :key2')
+    }.to raise_error('duplicate key "key2"')
 
     expect {
       Dslh.eval do
@@ -566,7 +566,7 @@ end
           end
         end
       end
-    }.to raise_error('duplicate key :key31')
+    }.to raise_error('duplicate key "key31"')
 
     expect {
       Dslh.eval do
@@ -588,7 +588,7 @@ end
           end
         end
       end
-    }.to raise_error('duplicate key :key311')
+    }.to raise_error('duplicate key "key311"')
   end
 
   it 'allow duplicate key' do
@@ -706,12 +706,12 @@ end
       end
 
       expect(h).to eq(
-        {:key1=>"value",
-         :key2=>100,
-         :key3=>
-          {:key31=>{"value31"=>{:key311=>nil, :key312=>"200"}},
-           :key32=>
-            {:key321=>{"value321"=>{:key3211=>"XXX", :key3212=>:XXX}}, :key322=>300}}}
+        {"key1"=>"value",
+         "key2"=>100,
+         "key3"=>
+          {"key31"=>{"value31"=>{"key311"=>nil, "key312"=>"200"}},
+           "key32"=>
+            {"key321"=>{"value321"=>{"key3211"=>"XXX", "key3212"=>:XXX}}, "key322"=>300}}}
       )
     }.to_not raise_error
   end
@@ -2524,10 +2524,53 @@ end
 
     expect(h).to eq(
       {"system"=>
-        {:key1=>"value",
-         :key2=>100,
-         :key3=>{100=>200, "XXX"=>:XXX},
-         :key4=>{"system"=>{"300"=>"400", :FOO=>:BAR}, :key42=>100}}}
+        {"key1"=>"value",
+         "key2"=>100,
+         "key3"=>{100=>200, "XXX"=>:XXX},
+         "key4"=>{"system"=>{"300"=>"400", :FOO=>:BAR}, "key42"=>100}}}
     )
+  end
+
+  it 'should convert hash to dsl (symbol key)' do
+    h = {:glossary=>
+          {:title=>"example glossary",
+           :GlossDiv=>
+            {:title=>"S",
+             :GlossList=>
+              {:GlossEntry=>
+                {:ID=>"SGML",
+                 :SortAs=>"SGML",
+                 :GlossTerm=>"Standard Generalized Markup Language",
+                 :Acronym=>"SGML",
+                 :Abbrev=>"ISO 8879:1986",
+                 :GlossDef=>
+                  {:para=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   :GlossSeeAlso=>["GML", "XML"]},
+                 :GlossSee=>"markup"}}}}}
+
+    dsl = Dslh.deval(h)
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso "GML", "XML"
+        end
+        GlossSee "markup"
+      end
+    end
+  end
+end
+    EOS
   end
 end
