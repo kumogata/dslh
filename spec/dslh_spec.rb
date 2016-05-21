@@ -2573,4 +2573,52 @@ glossary do
 end
     EOS
   end
+
+  it 'should convert hash to dsl (inclute Time)' do
+    h = {:glossary=>
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')}}
+
+    parse_method = Time.method(:parse)
+    time_cc = (class << Time; self; end)
+    time_cc.send(:undef_method, :parse)
+
+    dsl = Dslh.deval(h)
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  date Time.at(1463788800, 0)
+end
+    EOS
+
+    time_cc.send(:define_method, :parse, &parse_method)
+  end
+
+  it 'should convert hash to dsl (inclute Time / use Time#parse)' do
+    h = {:glossary=>
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')}}
+
+    dsl = Dslh.deval(h)
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  date Time.parse("2016-05-21 00:00:00 UTC")
+end
+    EOS
+  end
+
+  it 'should convert hash to dsl (inclute Time / pass time_inspecter)' do
+    h = {:glossary=>
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')}}
+
+    dsl = Dslh.deval(h, :time_inspecter => proc {|i| i.to_s.inspect })
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  date "2016-05-21 00:00:00 UTC"
+end
+    EOS
+  end
 end

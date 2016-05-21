@@ -38,7 +38,10 @@ class Dslh
   end # of class methods
 
   def initialize(options = {})
-    @options = options.dup
+    @options = {
+      :time_inspecter => method(:inspect_time)
+    }.merge(options)
+
     @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
     @options[:value_conv] ||= @options[:conv]
   end
@@ -176,7 +179,13 @@ class Dslh
       end
     else
       value = value_conv.call(value) if value_conv
-      value_buf.puts(' ' + value.inspect)
+
+      if @options[:time_inspecter] and value.kind_of?(Time)
+        value = @options[:time_inspecter].call(value)
+        value_buf.puts(' ' + value)
+      else
+        value_buf.puts(' ' + value.inspect)
+      end
     end
 
     return nested
@@ -191,6 +200,14 @@ class Dslh
     }
 
     keys.any? {|k| exclude_key.call(k) }
+  end
+
+  def inspect_time(time)
+    if Time.respond_to?(:parse)
+      "Time.parse(#{time.to_s.inspect})"
+    else
+      "Time.at(#{time.tv_sec}, #{time.tv_usec})"
+    end
   end
 
   class Scope
