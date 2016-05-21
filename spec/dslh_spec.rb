@@ -2531,6 +2531,18 @@ end
     )
   end
 
+  it 'include time"' do
+    h = Dslh.eval do
+      key1 'value'
+      key2 Time.parse('2016/05/21 00:00 UTC')
+    end
+
+    expect(h).to eq(
+      {"key1"=>"value",
+       "key2"=>Time.parse('2016/05/21 00:00 UTC')}
+    )
+  end
+
   it 'should convert hash to dsl (symbol key)' do
     h = {:glossary=>
           {:title=>"example glossary",
