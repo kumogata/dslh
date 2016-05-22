@@ -251,8 +251,8 @@ class Dslh
 
         if nested_hash
           @__hash__[method_name] = {
-          value => nested_hash
-        }
+            value => nested_hash
+          }
         else
           @__hash__[method_name] = value
         end
