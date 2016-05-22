@@ -82,7 +82,8 @@ class Dslh
 
   def deval(hash)
     buf = StringIO.new
-    deval0(hash, 0, buf)
+    depth = @options[:initial_depth] || 0
+    deval0(hash, depth, buf)
     buf.string
   end
 
