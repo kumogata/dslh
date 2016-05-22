@@ -124,3 +124,32 @@ puts Dslh.deval(h)
 #      end
 #    end
 ```
+
+### Hash list
+
+```ruby
+h = Dslh.eval do
+  glossary do |*|
+    title "example glossary"
+    date "2016-05-21 00:00:00 UTC"
+  end
+  glossary do |*|
+    title "example glossary2"
+    date "2016-05-21 00:01:00 UTC"
+  end
+  glossary2 do |*|
+    title "example glossary"
+    date "2016-05-21 00:00:00 UTC"
+  end
+end
+
+pp h
+#=> {"glossary"=>[
+#     {"title"=>"example glossary",
+#      "date"=>'2016-05-21 00:00:00 UTC'},
+#     {"title"=>"example glossary2",
+#      "date"=>'2016-05-21 00:01:00 UTC'}],
+#    "glossary2"=>[
+#     {"title"=>"example glossary",
+#      "date"=>'2016-05-21 00:00:00 UTC'}]}
+```
