@@ -39,7 +39,8 @@ class Dslh
 
   def initialize(options = {})
     @options = {
-      :time_inspecter => method(:inspect_time)
+      :time_inspecter => method(:inspect_time),
+      :dump_old_hash_array_format => false,
     }.merge(options)
 
     @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
@@ -118,12 +119,12 @@ class Dslh
         buf.puts(indent + key_value)
       else
         buf.print(indent + key)
-        value_proc(value, depth, buf)
+        value_proc(value, depth, buf, true, key)
       end
     end
   end
 
-  def value_proc(value, depth, value_buf, newline = true)
+  def value_proc(value, depth, value_buf, newline = true, curr_key = nil)
     indent = (INDENT_SPACES * depth)
     next_indent = (INDENT_SPACES * (depth + 1))
     value_conv = @options[:value_conv]
@@ -142,28 +143,47 @@ class Dslh
     when Array
       if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
         nested = true
-        value_buf.puts(' [')
 
-        value.each_with_index do |v, i|
-          case v
-          when Hash
-            value_buf.puts(next_indent + '_{')
-            deval0(v, depth + 2, value_buf)
-            value_buf.print(next_indent + '}')
-          when Array
-            value_buf.print(next_indent.slice(0...-1))
-            value_proc(v, depth + 1, value_buf, false)
-          else
-            value_buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
+        if not @options[:dump_old_hash_array_format] and value.all? {|i| i.kind_of?(Hash) }
+          value_buf.puts(' do |*|')
+
+          value.each_with_index do |v, i|
+            deval0(v, depth + 1, value_buf)
+
+            if i < (value.length - 1)
+              value_buf.puts(indent + "end\n" + indent + curr_key + ' do |*|')
+            end
           end
 
-          value_buf.puts(i < (value.length - 1) ? ',' : '')
-        end
-
-        if newline
-          value_buf.puts(indent + ']')
+          if newline
+            value_buf.puts(indent + 'end')
+          else
+            value_buf.print(indent + 'end')
+          end
         else
-          value_buf.print(indent + ']')
+          value_buf.puts(' [')
+
+          value.each_with_index do |v, i|
+            case v
+            when Hash
+              value_buf.puts(next_indent + '_{')
+              deval0(v, depth + 2, value_buf)
+              value_buf.print(next_indent + '}')
+            when Array
+              value_buf.print(next_indent.slice(0...-1))
+              value_proc(v, depth + 1, value_buf, false)
+            else
+              value_buf.print(next_indent + v.pretty_inspect.strip.gsub("\n", "\n" + next_indent))
+            end
+
+            value_buf.puts(i < (value.length - 1) ? ',' : '')
+          end
+
+          if newline
+            value_buf.puts(indent + ']')
+          else
+            value_buf.print(indent + ']')
+          end
         end
       elsif value.length == 1
         value_buf.puts(' ' + value.inspect)
@@ -239,22 +259,29 @@ class Dslh
       nested_hash = block ? ScopeBlock.nest(binding, 'block', method_name) : nil
       method_name = key_conv.call(method_name) if key_conv
 
-      if not @__options__[:allow_duplicate] and @__hash__.has_key?(method_name)
+      if not @__options__[:allow_duplicate] and @__hash__.has_key?(method_name) and not (block and block.arity == -1)
         raise "duplicate key #{method_name.inspect}"
       end
 
+      push_to_hash = proc do |v|
+        if block and block.arity == -1
+          @__hash__[method_name] ||= []
+          @__hash__[method_name] << v
+        else
+          @__hash__[method_name] = v
+        end
+      end
+
       if args.empty?
-        @__hash__[method_name] = nested_hash
+        push_to_hash.call(nested_hash)
       else
         args = args.map {|i| value_conv.call(i) } if value_conv
         value = args.length > 1 ? args : args[0]
 
         if nested_hash
-          @__hash__[method_name] = {
-            value => nested_hash
-          }
+          push_to_hash.call(value => nested_hash)
         else
-          @__hash__[method_name] = value
+          push_to_hash.call(value)
         end
 
         return @__hash__

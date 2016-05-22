@@ -767,6 +767,14 @@ end
     expect(evaluated).to eq(template)
   end
 
+  it 'should convert json to dsl (old format)' do
+    template = JSON.parse(drupal_multi_az_template)
+
+    dsl = Dslh.deval(template)
+    evaluated = Dslh.eval(dsl, :key_conv => proc {|i| i.to_s }, :dump_old_hash_array_format => true)
+    expect(evaluated).to eq(template)
+  end
+
   it 'should convert json to dsl with key_conf' do
     template = JSON.parse(drupal_multi_az_template)
 
@@ -935,30 +943,28 @@ Resources do
       PolicyDocument do
         Version "2008-10-17"
         Id "UploadPolicy"
-        Statement [
-          _{
-            Sid "EnableReadWrite"
-            Action "s3:GetObject", "s3:PutObject", "s3:PutObjectACL"
-            Effect "Allow"
-            Resource do
-              Fn__Join [
-                "",
-                [
-                  "arn:aws:s3:::",
-                  _{
-                    Ref "S3Bucket"
-                  },
-                  "/*"
-                ]
+        Statement do |*|
+          Sid "EnableReadWrite"
+          Action "s3:GetObject", "s3:PutObject", "s3:PutObjectACL"
+          Effect "Allow"
+          Resource do
+            Fn__Join [
+              "",
+              [
+                "arn:aws:s3:::",
+                _{
+                  Ref "S3Bucket"
+                },
+                "/*"
               ]
+            ]
+          end
+          Principal do
+            AWS do
+              Fn__GetAtt "S3User", "Arn"
             end
-            Principal do
-              AWS do
-                Fn__GetAtt "S3User", "Arn"
-              end
-            end
-          }
-        ]
+          end
+        end
       end
       Bucket do
         Ref "S3Bucket"
@@ -969,20 +975,16 @@ Resources do
     Type "AWS::IAM::User"
     Properties do
       Path "/"
-      Policies [
-        _{
-          PolicyName "root"
-          PolicyDocument do
-            Statement [
-              _{
-                Effect "Allow"
-                Action "s3:*"
-                Resource "*"
-              }
-            ]
+      Policies do |*|
+        PolicyName "root"
+        PolicyDocument do
+          Statement do |*|
+            Effect "Allow"
+            Action "s3:*"
+            Resource "*"
           end
-        }
-      ]
+        end
+      end
     end
   end
   S3Keys do
@@ -1002,20 +1004,16 @@ Resources do
       AvailabilityZones do
         Fn__GetAZs ""
       end
-      LBCookieStickinessPolicy [
-        _{
-          PolicyName "CookieBasedPolicy"
-          CookieExpirationPeriod "30"
-        }
-      ]
-      Listeners [
-        _{
-          LoadBalancerPort "80"
-          InstancePort "80"
-          Protocol "HTTP"
-          PolicyNames ["CookieBasedPolicy"]
-        }
-      ]
+      LBCookieStickinessPolicy do |*|
+        PolicyName "CookieBasedPolicy"
+        CookieExpirationPeriod "30"
+      end
+      Listeners do |*|
+        LoadBalancerPort "80"
+        InstancePort "80"
+        Protocol "HTTP"
+        PolicyNames ["CookieBasedPolicy"]
+      end
       HealthCheck do
         Target "HTTP:80/"
         HealthyThreshold "2"
@@ -1039,11 +1037,9 @@ Resources do
       DesiredCapacity do
         Ref "WebServerCapacity"
       end
-      LoadBalancerNames [
-        _{
-          Ref "ElasticLoadBalancer"
-        }
-      ]
+      LoadBalancerNames do |*|
+        Ref "ElasticLoadBalancer"
+      end
     end
   end
   LaunchConfig do
@@ -1166,11 +1162,9 @@ Resources do
       InstanceType do
         Ref "InstanceType"
       end
-      SecurityGroups [
-        _{
-          Ref "WebServerSecurityGroup"
-        }
-      ]
+      SecurityGroups do |*|
+        Ref "WebServerSecurityGroup"
+      end
       KeyName do
         Ref "KeyName"
       end
@@ -1316,11 +1310,9 @@ Resources do
       DBInstanceClass do
         Ref "DBClass"
       end
-      DBSecurityGroups [
-        _{
-          Ref "DBSecurityGroup"
-        }
-      ]
+      DBSecurityGroups do |*|
+        Ref "DBSecurityGroup"
+      end
       AllocatedStorage do
         Ref "DBAllocatedStorage"
       end
@@ -1344,27 +1336,25 @@ Resources do
     Type "AWS::EC2::SecurityGroup"
     Properties do
       GroupDescription "Enable HTTP access via port 80, locked down to requests from the load balancer only and SSH access"
-      SecurityGroupIngress [
-        _{
-          IpProtocol "tcp"
-          FromPort "80"
-          ToPort "80"
-          SourceSecurityGroupOwnerId do
-            Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"
-          end
-          SourceSecurityGroupName do
-            Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.GroupName"
-          end
-        },
-        _{
-          IpProtocol "tcp"
-          FromPort "22"
-          ToPort "22"
-          CidrIp do
-            Ref "SSHLocation"
-          end
-        }
-      ]
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "80"
+        ToPort "80"
+        SourceSecurityGroupOwnerId do
+          Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"
+        end
+        SourceSecurityGroupName do
+          Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.GroupName"
+        end
+      end
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "22"
+        ToPort "22"
+        CidrIp do
+          Ref "SSHLocation"
+        end
+      end
     end
   end
 end
@@ -1572,30 +1562,28 @@ Resources do
       PolicyDocument do
         Version "2008-10-17"
         Id "UploadPolicy"
-        Statement [
-          _{
-            Sid "EnableReadWrite"
-            Action "s3:GetObject", "s3:PutObject", "s3:PutObjectACL"
-            Effect "Allow"
-            Resource do
-              Fn__Join [
-                "",
-                [
-                  "arn:aws:s3:::",
-                  _{
-                    Ref "S3Bucket"
-                  },
-                  "/*"
-                ]
+        Statement do |*|
+          Sid "EnableReadWrite"
+          Action "s3:GetObject", "s3:PutObject", "s3:PutObjectACL"
+          Effect "Allow"
+          Resource do
+            Fn__Join [
+              "",
+              [
+                "arn:aws:s3:::",
+                _{
+                  Ref "S3Bucket"
+                },
+                "/*"
               ]
+            ]
+          end
+          Principal do
+            AWS do
+              Fn__GetAtt "S3User", "Arn"
             end
-            Principal do
-              AWS do
-                Fn__GetAtt "S3User", "Arn"
-              end
-            end
-          }
-        ]
+          end
+        end
       end
       Bucket do
         Ref "S3Bucket"
@@ -1606,20 +1594,16 @@ Resources do
     Type "AWS::IAM::User"
     Properties do
       Path "/"
-      Policies [
-        _{
-          PolicyName "root"
-          PolicyDocument do
-            Statement [
-              _{
-                Effect "Allow"
-                Action "s3:*"
-                Resource "*"
-              }
-            ]
+      Policies do |*|
+        PolicyName "root"
+        PolicyDocument do
+          Statement do |*|
+            Effect "Allow"
+            Action "s3:*"
+            Resource "*"
           end
-        }
-      ]
+        end
+      end
     end
   end
   S3Keys do
@@ -1639,20 +1623,16 @@ Resources do
       AvailabilityZones do
         Fn__GetAZs ""
       end
-      LBCookieStickinessPolicy [
-        _{
-          PolicyName "CookieBasedPolicy"
-          CookieExpirationPeriod "30"
-        }
-      ]
-      Listeners [
-        _{
-          LoadBalancerPort "80"
-          InstancePort "80"
-          Protocol "HTTP"
-          PolicyNames ["CookieBasedPolicy"]
-        }
-      ]
+      LBCookieStickinessPolicy do |*|
+        PolicyName "CookieBasedPolicy"
+        CookieExpirationPeriod "30"
+      end
+      Listeners do |*|
+        LoadBalancerPort "80"
+        InstancePort "80"
+        Protocol "HTTP"
+        PolicyNames ["CookieBasedPolicy"]
+      end
       HealthCheck do
         Target "HTTP:80/"
         HealthyThreshold "2"
@@ -1676,11 +1656,9 @@ Resources do
       DesiredCapacity do
         Ref "WebServerCapacity"
       end
-      LoadBalancerNames [
-        _{
-          Ref "ElasticLoadBalancer"
-        }
-      ]
+      LoadBalancerNames do |*|
+        Ref "ElasticLoadBalancer"
+      end
     end
   end
   LaunchConfig do
@@ -1829,11 +1807,9 @@ Resources do
       InstanceType do
         Ref "InstanceType"
       end
-      SecurityGroups [
-        _{
-          Ref "WebServerSecurityGroup"
-        }
-      ]
+      SecurityGroups do |*|
+        Ref "WebServerSecurityGroup"
+      end
       KeyName do
         Ref "KeyName"
       end
@@ -1979,11 +1955,9 @@ Resources do
       DBInstanceClass do
         Ref "DBClass"
       end
-      DBSecurityGroups [
-        _{
-          Ref "DBSecurityGroup"
-        }
-      ]
+      DBSecurityGroups do |*|
+        Ref "DBSecurityGroup"
+      end
       AllocatedStorage do
         Ref "DBAllocatedStorage"
       end
@@ -2007,27 +1981,25 @@ Resources do
     Type "AWS::EC2::SecurityGroup"
     Properties do
       GroupDescription "Enable HTTP access via port 80, locked down to requests from the load balancer only and SSH access"
-      SecurityGroupIngress [
-        _{
-          IpProtocol "tcp"
-          FromPort "80"
-          ToPort "80"
-          SourceSecurityGroupOwnerId do
-            Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"
-          end
-          SourceSecurityGroupName do
-            Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.GroupName"
-          end
-        },
-        _{
-          IpProtocol "tcp"
-          FromPort "22"
-          ToPort "22"
-          CidrIp do
-            Ref "SSHLocation"
-          end
-        }
-      ]
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "80"
+        ToPort "80"
+        SourceSecurityGroupOwnerId do
+          Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.OwnerAlias"
+        end
+        SourceSecurityGroupName do
+          Fn__GetAtt "ElasticLoadBalancer", "SourceSecurityGroup.GroupName"
+        end
+      end
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "22"
+        ToPort "22"
+        CidrIp do
+          Ref "SSHLocation"
+        end
+      end
     end
   end
 end
@@ -2305,11 +2277,9 @@ Resources do
       InstanceType do
         Ref "InstanceType"
       end
-      SecurityGroups [
-        _{
-          Ref "WebServerSecurityGroup"
-        }
-      ]
+      SecurityGroups do |*|
+        Ref "WebServerSecurityGroup"
+      end
       KeyName do
         Ref "KeyName"
       end
@@ -2420,22 +2390,20 @@ Resources do
     Type "AWS::EC2::SecurityGroup"
     Properties do
       GroupDescription "Enable HTTP access via port 80 and SSH access"
-      SecurityGroupIngress [
-        _{
-          IpProtocol "tcp"
-          FromPort "80"
-          ToPort "80"
-          CidrIp "0.0.0.0/0"
-        },
-        _{
-          IpProtocol "tcp"
-          FromPort "22"
-          ToPort "22"
-          CidrIp do
-            Ref "SSHLocation"
-          end
-        }
-      ]
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "80"
+        ToPort "80"
+        CidrIp "0.0.0.0/0"
+      end
+      SecurityGroupIngress do |*|
+        IpProtocol "tcp"
+        FromPort "22"
+        ToPort "22"
+        CidrIp do
+          Ref "SSHLocation"
+        end
+      end
     end
   end
 end
@@ -2675,5 +2643,69 @@ end
     end
   end
     EOS
+  end
+
+  it 'should convert hash to dsl (include hash array)' do
+    h = {:glossary=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')},
+          {:title=>"example glossary2",
+           :date=>Time.parse('2016/05/21 00:01 UTC')}],
+         :glossary2=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')}]}
+
+    dsl = Dslh.deval(h, :time_inspecter => proc {|i| i.to_s.inspect })
+    expect(dsl).to eq(<<-EOS)
+glossary do |*|
+  title "example glossary"
+  date "2016-05-21 00:00:00 UTC"
+end
+glossary do |*|
+  title "example glossary2"
+  date "2016-05-21 00:01:00 UTC"
+end
+glossary2 do |*|
+  title "example glossary"
+  date "2016-05-21 00:00:00 UTC"
+end
+    EOS
+  end
+
+  it 'should convert dsl to hash (include hash array)' do
+    h = {:glossary=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')},
+          {:title=>"example glossary2",
+           :date=>Time.parse('2016/05/21 00:01 UTC')}],
+         :glossary2=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC')}]}
+
+    hash = Dslh.eval do
+      glossary do |*|
+        title "example glossary"
+        date "2016-05-21 00:00:00 UTC"
+      end
+      glossary do |*|
+        title "example glossary2"
+        date "2016-05-21 00:01:00 UTC"
+      end
+      glossary2 do |*|
+        title "example glossary"
+        date "2016-05-21 00:00:00 UTC"
+      end
+    end
+
+    expect(hash).to eq(
+      {"glossary"=>[
+        {"title"=>"example glossary",
+         "date"=>'2016-05-21 00:00:00 UTC'},
+        {"title"=>"example glossary2",
+         "date"=>'2016-05-21 00:01:00 UTC'}],
+       "glossary2"=>[
+        {"title"=>"example glossary",
+         "date"=>'2016-05-21 00:00:00 UTC'}]}
+    )
   end
 end
