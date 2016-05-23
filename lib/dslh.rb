@@ -41,7 +41,8 @@ class Dslh
     @options = {
       :time_inspecter => method(:inspect_time),
       :dump_old_hash_array_format => false,
-      :force_dump_braces => false
+      :force_dump_braces => false,
+      :use_braces_instead_of_do_end => false,
     }.merge(options)
 
     @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
@@ -137,29 +138,33 @@ class Dslh
         value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
       else
         nested = true
-        value_buf.puts(' do')
+        value_buf.puts(@options[:use_braces_instead_of_do_end] ? ' {' : ' do')
         deval0(value, depth + 1, value_buf)
-        value_buf.puts(indent + 'end')
+        value_buf.puts(indent + (@options[:use_braces_instead_of_do_end] ? '}' : 'end'))
       end
     when Array
       if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
         nested = true
 
         if not @options[:dump_old_hash_array_format] and value.all? {|i| i.kind_of?(Hash) }
-          value_buf.puts(' do |*|')
+          value_buf.puts(@options[:use_braces_instead_of_do_end] ? ' {|*|' : ' do |*|')
 
           value.each_with_index do |v, i|
             deval0(v, depth + 1, value_buf)
 
             if i < (value.length - 1)
-              value_buf.puts(indent + "end\n" + indent + curr_key + ' do |*|')
+              if @options[:use_braces_instead_of_do_end]
+                value_buf.puts(indent + "}\n" + indent + curr_key + ' {|*|')
+              else
+                value_buf.puts(indent + "end\n" + indent + curr_key + ' do |*|')
+              end
             end
           end
 
           if newline
-            value_buf.puts(indent + 'end')
+            value_buf.puts(indent + (@options[:use_braces_instead_of_do_end] ? '}' : 'end'))
           else
-            value_buf.print(indent + 'end')
+            value_buf.print(indent + (@options[:use_braces_instead_of_do_end] ? '}' : 'end'))
           end
         else
           value_buf.puts(' [')

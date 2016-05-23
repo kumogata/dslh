@@ -775,6 +775,14 @@ end
     expect(evaluated).to eq(template)
   end
 
+  it 'should convert json to dsl (use braces)' do
+    template = JSON.parse(drupal_multi_az_template)
+
+    dsl = Dslh.deval(template)
+    evaluated = Dslh.eval(dsl, :key_conv => proc {|i| i.to_s }, :use_braces_instead_of_do_end => true)
+    expect(evaluated).to eq(template)
+  end
+
   it 'should convert json to dsl with key_conf' do
     template = JSON.parse(drupal_multi_az_template)
 
@@ -2749,6 +2757,49 @@ glossary do
     end
   end
 end
+    EOS
+  end
+
+  it 'should convert hash to dsl (use braces)' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :use_braces_instead_of_do_end => true)
+    expect(dsl).to eq(<<-EOS)
+glossary {
+  title "example glossary"
+  GlossDiv {
+    title "S"
+    GlossList {
+      GlossEntry {
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef {
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso "GML", "XML"
+        }
+        GlossSee "markup"
+      }
+    }
+  }
+}
     EOS
   end
 end
