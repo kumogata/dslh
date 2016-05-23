@@ -125,7 +125,7 @@ puts Dslh.deval(h)
 #    end
 ```
 
-### Hash list
+### Hash List
 
 ```ruby
 h = Dslh.eval do
