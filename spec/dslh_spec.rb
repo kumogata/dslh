@@ -2708,4 +2708,47 @@ end
          "date"=>'2016-05-21 00:00:00 UTC'}]}
     )
   end
+
+  it 'should convert hash to dsl (disable omit braces)' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :force_dump_braces => true)
+    expect(dsl).to eq(<<-EOS)
+glossary do
+  title "example glossary"
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso ["GML", "XML"]
+        end
+        GlossSee "markup"
+      end
+    end
+  end
+end
+    EOS
+  end
 end

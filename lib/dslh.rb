@@ -41,6 +41,7 @@ class Dslh
     @options = {
       :time_inspecter => method(:inspect_time),
       :dump_old_hash_array_format => false,
+      :force_dump_braces => false
     }.merge(options)
 
     @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
@@ -185,7 +186,7 @@ class Dslh
             value_buf.print(indent + ']')
           end
         end
-      elsif value.length == 1
+      elsif @options[:force_dump_braces] or value.length == 1
         value_buf.puts(' ' + value.inspect)
       else
         value_buf.puts(' ' + value.map {|v|
