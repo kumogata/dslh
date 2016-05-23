@@ -153,3 +153,47 @@ pp h
 #     {"title"=>"example glossary",
 #      "date"=>'2016-05-21 00:00:00 UTC'}]}
 ```
+
+### Use braces
+
+```ruby
+h = {"glossary"=>
+      {"title"=>"example glossary",
+       "GlossDiv"=>
+        {"title"=>"S",
+         "GlossList"=>
+          {"GlossEntry"=>
+            {"ID"=>"SGML",
+             "SortAs"=>"SGML",
+             "GlossTerm"=>"Standard Generalized Markup Language",
+             "Acronym"=>"SGML",
+             "Abbrev"=>"ISO 8879:1986",
+             "GlossDef"=>
+              {"para"=>
+                "A meta-markup language, used to create markup languages such as DocBook.",
+               "GlossSeeAlso"=>["GML", "XML"]},
+             "GlossSee"=>"markup"}}}}}
+
+dsl = Dslh.deval(h, :use_braces_instead_of_do_end => true)
+puts dsl
+#=> glossary {
+#     title "example glossary"
+#     GlossDiv {
+#       title "S"
+#       GlossList {
+#         GlossEntry {
+#           ID "SGML"
+#           SortAs "SGML"
+#           GlossTerm "Standard Generalized Markup Language"
+#           Acronym "SGML"
+#           Abbrev "ISO 8879:1986"
+#           GlossDef {
+#             para "A meta-markup language, used to create markup languages such as DocBook."
+#             GlossSeeAlso "GML", "XML"
+#           }
+#           GlossSee "markup"
+#         }
+#       }
+#     }
+#   }
+```
