@@ -2680,6 +2680,58 @@ end
     EOS
   end
 
+  it 'should convert hash to dsl (include hash array with exclude_key)' do
+    exclude_key = proc do |k|
+      k == :title
+    end
+
+    h = {:glossary=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC').to_s},
+          {:title=>"example glossary2",
+           :date=>Time.parse('2016/05/21 00:01 UTC').to_s}],
+         :glossary2=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC').to_s}]}
+
+    dsl = Dslh.deval(h, :exclude_key => exclude_key)
+    expect(dsl).to eq(<<-EOS)
+glossary [
+  {:title=>"example glossary", :date=>"2016-05-21 00:00:00 UTC"},
+  {:title=>"example glossary2", :date=>"2016-05-21 00:01:00 UTC"}
+]
+glossary2 [
+  {:title=>"example glossary", :date=>"2016-05-21 00:00:00 UTC"}
+]
+    EOS
+  end
+
+  it 'should convert hash to dsl (include hash array with exclude_key and dump_old_hash_array_format)' do
+    exclude_key = proc do |k|
+      k == :title
+    end
+
+    h = {:glossary=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC').to_s},
+          {:title=>"example glossary2",
+           :date=>Time.parse('2016/05/21 00:01 UTC').to_s}],
+         :glossary2=>[
+          {:title=>"example glossary",
+           :date=>Time.parse('2016/05/21 00:00 UTC').to_s}]}
+
+    dsl = Dslh.deval(h, :exclude_key => exclude_key)
+    expect(dsl).to eq(<<-EOS)
+glossary [
+  {:title=>"example glossary", :date=>"2016-05-21 00:00:00 UTC"},
+  {:title=>"example glossary2", :date=>"2016-05-21 00:01:00 UTC"}
+]
+glossary2 [
+  {:title=>"example glossary", :date=>"2016-05-21 00:00:00 UTC"}
+]
+    EOS
+  end
+
   it 'should convert dsl to hash (include hash array)' do
     h = {:glossary=>[
           {:title=>"example glossary",

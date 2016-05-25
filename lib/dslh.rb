@@ -146,7 +146,7 @@ class Dslh
       if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
         nested = true
 
-        if not @options[:dump_old_hash_array_format] and value.all? {|i| i.kind_of?(Hash) }
+        if not @options[:dump_old_hash_array_format] and value.all? {|i| i.kind_of?(Hash) and not exclude_keys?(i.keys) }
           value_buf.puts(@options[:use_braces_instead_of_do_end] ? ' {|*|' : ' do |*|')
 
           value.each_with_index do |v, i|
@@ -172,9 +172,13 @@ class Dslh
           value.each_with_index do |v, i|
             case v
             when Hash
-              value_buf.puts(next_indent + '_{')
-              deval0(v, depth + 2, value_buf)
-              value_buf.print(next_indent + '}')
+              if exclude_keys?(v.keys)
+                value_buf.print(INDENT_SPACES * (depth + 1) + v.pretty_inspect.strip)
+              else
+                value_buf.puts(next_indent + '_{')
+                deval0(v, depth + 2, value_buf)
+                value_buf.print(next_indent + '}')
+              end
             when Array
               value_buf.print(next_indent.slice(0...-1))
               value_proc(v, depth + 1, value_buf, false)
