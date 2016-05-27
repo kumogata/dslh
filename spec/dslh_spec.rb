@@ -2434,6 +2434,51 @@ end
     EOS
   end
 
+  it 'deval to hash from dsl that include empty array argument' do
+    dsl = <<-EOS
+glossary do
+  title "example glossary"
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso []
+        end
+        GlossSee "markup"
+      end
+    end
+  end
+end
+    EOS
+
+    h = Dslh.eval(dsl)
+    expect(h).to eq(
+      {"glossary"=>
+        {"title"=>"example glossary",
+         "GlossDiv"=>
+          {"title"=>"S",
+           "GlossList"=>
+            {"GlossEntry"=>
+              {"ID"=>"SGML",
+               "SortAs"=>"SGML",
+               "GlossTerm"=>"Standard Generalized Markup Language",
+               "Acronym"=>"SGML",
+               "Abbrev"=>"ISO 8879:1986",
+               "GlossDef"=>
+                {"para"=>
+                  "A meta-markup language, used to create markup languages such as DocBook.",
+                 "GlossSeeAlso"=>[]},
+               "GlossSee"=>"markup"}}}}}
+    )
+  end
+
   it 'should be hash that include empty array' do
     h = {"glossary"=>
           {"title"=>"example glossary",
@@ -2465,10 +2510,10 @@ glossary do
         GlossTerm "Standard Generalized Markup Language"
         Acronym "SGML"
         Abbrev "ISO 8879:1986"
-        GlossDef(
-          {"para"=>
-            "A meta-markup language, used to create markup languages such as DocBook.",
-           "GlossSeeAlso"=>[]})
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso []
+        end
         GlossSee "markup"
       end
     end

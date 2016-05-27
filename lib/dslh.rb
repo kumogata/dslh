@@ -134,7 +134,7 @@ class Dslh
 
     case value
     when Hash
-      if exclude_keys?(value.keys) or value.values.any? {|v| v == [] }
+      if exclude_keys?(value.keys)
         value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
       else
         nested = true
@@ -143,7 +143,9 @@ class Dslh
         value_buf.puts(indent + (@options[:use_braces_instead_of_do_end] ? '}' : 'end'))
       end
     when Array
-      if value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
+      if value.empty?
+        value_buf.puts(" []")
+      elsif value.any? {|v| [Array, Hash].any? {|c| v.kind_of?(c) }}
         nested = true
 
         if not @options[:dump_old_hash_array_format] and value.all? {|i| i.kind_of?(Hash) and not exclude_keys?(i.keys) }
