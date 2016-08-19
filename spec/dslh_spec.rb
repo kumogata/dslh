@@ -394,6 +394,28 @@ describe Dslh do
     expect(h).to eq({"key1"=>123, "key2"=>{"key21"=>123, "key22"=>{"key221"=>123}}})
   end
 
+  it 'should hook vars' do
+    scope_hook = proc do |scope|
+      scope.instance_eval(<<-EOS)
+        def func
+          @var
+        end
+      EOS
+    end
+
+    h = Dslh.eval :scope_hook => scope_hook, :scope_vars => {:var => 999} do
+      key1 func
+      key2 do
+        key21 func
+        key22 do
+          key221 func
+        end
+      end
+    end
+
+    expect(h).to eq({"key1"=>999, "key2"=>{"key21"=>999, "key22"=>{"key221"=>999}}})
+  end
+
   it 'should convert hash to dsl' do
     h = {"glossary"=>
           {"title"=>"example glossary",
