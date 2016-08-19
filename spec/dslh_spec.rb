@@ -416,7 +416,6 @@ describe Dslh do
     expect(h).to eq({"key1"=>999, "key2"=>{"key21"=>999, "key22"=>{"key221"=>999}}})
   end
 
-
   it 'should convert hash to dsl' do
     h = {"glossary"=>
           {"title"=>"example glossary",
