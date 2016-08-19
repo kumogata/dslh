@@ -56,6 +56,10 @@ class Dslh
     scope.instance_variable_set(:@__hash__, retval)
     @options[:scope_hook].call(scope) if @options[:scope_hook]
 
+    (@options[:scope_vars] || {}).each do |name, value|
+      scope.instance_variable_set("@#{name}", value)
+    end
+
     if @options[:ignore_methods]
       ignore_methods = Array(@options[:ignore_methods])
 
