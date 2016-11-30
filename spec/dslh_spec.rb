@@ -2921,4 +2921,18 @@ glossary {
 }
     EOS
   end
+
+  it 'ignore specific methods' do
+    h = Dslh.eval do
+      sprintf "100"
+    end
+
+    expect(h).to eq({})
+
+    h = Dslh.eval(:ignore_methods => :sprintf) do
+      sprintf "100"
+    end
+
+    expect(h).to eq({"sprintf" => "100"})
+  end
 end
