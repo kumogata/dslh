@@ -1,9 +1,39 @@
 require 'dslh/version'
 require 'stringio'
 require 'pp'
+require 'yaml'
 
 class Dslh
+  class ValidationError < StandardError
+    attr_reader :errors
+
+    def initialize(root_errors)
+      super(root_errors.map {|e| e.to_s }.join("\n"))
+      @errors = root_errors
+    end
+  end
+
   INDENT_SPACES = '  '
+
+  VALID_OPTIONS = [
+    :allow_duplicate,
+    :allow_empty_args,
+    :conv,
+    :dump_old_hash_array_format,
+    :exclude_key,
+    :filename,
+    :force_dump_braces,
+    :ignore_methods,
+    :initial_depth,
+    :key_conv,
+    :lineno,
+    :scope_hook,
+    :scope_vars,
+    :time_inspecter,
+    :use_braces_instead_of_do_end,
+    :schema,
+    :value_conv,
+  ]
 
   class << self
     def eval(expr_or_options = nil, options = nil, &block)
@@ -38,6 +68,12 @@ class Dslh
   end # of class methods
 
   def initialize(options = {})
+    invlid_options = options.keys - VALID_OPTIONS
+
+    unless invlid_options.empty?
+      raise ArgumentError, 'invalid option ' + invlid_options.map {|i| i.inspect }.join(',')
+    end
+
     @options = {
       :time_inspecter => method(:inspect_time),
       :dump_old_hash_array_format => false,
@@ -82,6 +118,26 @@ class Dslh
       scope.instance_eval(*eval_args)
     else
       scope.instance_eval(&block)
+    end
+
+    if schema = @options[:schema]
+      begin
+        require 'kwalify'
+      rescue LoadError
+        raise 'cannot load "kwalify". please install "kwalify"'
+      end
+
+      unless schema.kind_of?(String)
+        raise TypeError, "wrong schema type #{schema.class} (expected String)"
+      end
+
+      schema = Kwalify::Yaml.load(schema)
+      validator = Kwalify::Validator.new(schema)
+      errors = validator.validate(retval)
+
+      unless errors.empty?
+        raise ValidationError, errors
+      end
     end
 
     return retval
