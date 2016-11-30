@@ -5,6 +5,25 @@ require 'pp'
 class Dslh
   INDENT_SPACES = '  '
 
+  VALID_OPTIONS = [
+    :allow_duplicate,
+    :allow_empty_args,
+    :conv,
+    :dump_old_hash_array_format,
+    :exclude_key,
+    :filename,
+    :force_dump_braces,
+    :ignore_methods,
+    :initial_depth,
+    :key_conv,
+    :lineno,
+    :scope_hook,
+    :scope_vars,
+    :time_inspecter,
+    :use_braces_instead_of_do_end,
+    :value_conv,
+  ]
+
   class << self
     def eval(expr_or_options = nil, options = nil, &block)
       if options and not options.kind_of?(Hash)
@@ -38,6 +57,12 @@ class Dslh
   end # of class methods
 
   def initialize(options = {})
+    invlid_options = options.keys - VALID_OPTIONS
+
+    unless invlid_options.empty?
+      raise ArgumentError, 'invalid option ' + invlid_options.map {|i| i.inspect }.join(',')
+    end
+
     @options = {
       :time_inspecter => method(:inspect_time),
       :dump_old_hash_array_format => false,
