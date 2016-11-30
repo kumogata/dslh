@@ -226,7 +226,6 @@ mapping:
             required:  yes
          "email":
             type:      str
-      EOS
 EOS
 
 begin
