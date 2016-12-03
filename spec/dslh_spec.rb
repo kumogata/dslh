@@ -3098,27 +3098,27 @@ mapping:
     sequence:
       - type: map
         mapping:
-         "_id":
-           type: str
-           required: yes
-         "code":
-           type: int
-           required: yes
-         "email":
-           type: str
+          "_id":
+            type: str
+            required: yes
+          "code":
+            type: int
+            required: yes
+          "email":
+            type: str
   "employees2":
     type: seq
     sequence:
       - type: map
         mapping:
-         "_id":
-           type: str
-           required: yes
-         "code":
-           type: int
-           required: yes
-         "email":
-           type: str
+          "_id":
+            type: str
+            required: yes
+          "code":
+            type: int
+            required: yes
+          "email":
+            type: str
         EOS
       end
 
