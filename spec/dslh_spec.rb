@@ -3087,5 +3087,111 @@ employees2 "bar2" do
 end
       EOS
     end
+
+    context 'with schema' do
+      let(:schema) do
+        <<-EOS
+type: map
+mapping:
+  "employees":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+         "_id":
+           type: str
+           required: yes
+         "code":
+           type: int
+           required: yes
+         "email":
+           type: str
+  "employees2":
+    type: seq
+    sequence:
+      - type: map
+        mapping:
+         "_id":
+           type: str
+           required: yes
+         "code":
+           type: int
+           required: yes
+         "email":
+           type: str
+        EOS
+      end
+
+      let(:expected_errmsg) do
+        <<-EOS.chomp
+[/employees/0/_id] '123': not a string.
+[/employees/1/email] '100': not a string.
+[/employees2/0] key 'code:' is required.
+[/employees2/0/code1] key 'code1:' is undefined.
+[/employees2/0/email1] key 'email1:' is undefined.
+[/employees3] key 'employees3:' is undefined.
+        EOS
+      end
+
+      it 'has no error' do
+        h = Dslh.eval(:schema => schema, :root_identify => true) do
+          employees "foo" do
+            code 101
+            email "foo@winebarrel.com"
+          end
+          employees "bar" do
+            code 102
+            email "bar@winebarrel.com"
+          end
+          employees2 "foo2" do
+            code 201
+            email "foo@winebarrel.com"
+          end
+          employees2 "bar2" do
+            code 202
+            email "bar@winebarrel.com"
+          end
+        end
+
+        expect(h).to eq(
+          {"employees"=>
+            {"foo"=>{"code"=>101, "email"=>"foo@winebarrel.com"},
+             "bar"=>{"code"=>102, "email"=>"bar@winebarrel.com"}},
+           "employees2"=>
+            {"foo2"=>{"code"=>201, "email"=>"foo@winebarrel.com"},
+             "bar2"=>{"code"=>202, "email"=>"bar@winebarrel.com"}}}
+        )
+      end
+
+      it 'has error' do
+        block = proc do
+          employees 123 do
+            code 101
+            email "foo@winebarrel.com"
+          end
+          employees "bar" do
+            code 102
+            email 100
+          end
+          employees2 "foo2" do
+            code1 201
+            email1 "foo@winebarrel.com"
+          end
+          employees3 "bar2" do
+            code 202
+            email "bar@winebarrel.com"
+          end
+        end
+
+        begin
+          h = Dslh.eval(:schema => schema, :root_identify => true, &block)
+          fail "must raise validation error"
+        rescue Dslh::ValidationError => e
+          errmsg = e.errors.map {|i| i.to_s }.join("\n")
+          expect(errmsg).to eq expected_errmsg
+          expect(e.message).to eq expected_errmsg
+        end
+      end
+    end
   end
 end

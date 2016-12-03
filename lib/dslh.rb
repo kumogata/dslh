@@ -134,7 +134,20 @@ class Dslh
 
       schema = Kwalify::Yaml.load(schema)
       validator = Kwalify::Validator.new(schema)
-      errors = validator.validate(retval)
+
+      if @options[:root_identify]
+        new_retval = {}
+
+        retval.each do |k, v|
+          new_retval[k] = v.map {|_id, attrs|
+            attrs.merge('_id' => _id)
+          }
+        end
+
+        errors = validator.validate(new_retval)
+      else
+        errors = validator.validate(retval)
+      end
 
       unless errors.empty?
         raise ValidationError, errors
