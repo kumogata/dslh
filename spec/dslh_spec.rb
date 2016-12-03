@@ -3025,4 +3025,67 @@ mapping:
       end
     end
   end
+
+  context 'idetify using root key' do
+    it 'eval' do
+      h = Dslh.eval do
+        employees "foo" do
+          code 101
+          email "foo@winebarrel.com"
+        end
+        employees "bar" do
+          code 102
+          email "bar@winebarrel.com"
+        end
+        employees2 "foo2" do
+          code 201
+          email "foo@winebarrel.com"
+        end
+        employees2 "bar2" do
+          code 202
+          email "bar@winebarrel.com"
+        end
+      end
+
+      expect(h).to eq(
+        {"employees"=>
+          {"foo"=>{"code"=>101, "email"=>"foo@winebarrel.com"},
+           "bar"=>{"code"=>102, "email"=>"bar@winebarrel.com"}},
+         "employees2"=>
+          {"foo2"=>{"code"=>201, "email"=>"foo@winebarrel.com"},
+           "bar2"=>{"code"=>202, "email"=>"bar@winebarrel.com"}}}
+      )
+    end
+
+    it 'deval' do
+      h = {"employees"=>
+            {"foo"=>{"code"=>101, "email"=>"foo@winebarrel.com"},
+             "bar"=>{"code"=>102, "email"=>"bar@winebarrel.com"}},
+           "employees2"=>
+            {"foo2"=>{"code"=>201, "email"=>"foo@winebarrel.com"},
+             "bar2"=>{"code"=>202, "email"=>"bar@winebarrel.com"}}}
+
+
+      dsl = Dslh.deval(h, :root_identify => true)
+
+      expect(dsl).to eq <<-EOS
+employees "foo" do
+  code 101
+  email "foo@winebarrel.com"
+end
+employees "bar" do
+  code 102
+  email "bar@winebarrel.com"
+end
+employees2 "foo2" do
+  code 201
+  email "foo@winebarrel.com"
+end
+employees2 "bar2" do
+  code 202
+  email "bar@winebarrel.com"
+end
+      EOS
+    end
+  end
 end

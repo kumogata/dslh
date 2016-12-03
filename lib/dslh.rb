@@ -27,11 +27,12 @@ class Dslh
     :initial_depth,
     :key_conv,
     :lineno,
+    :root_identify,
+    :schema,
     :scope_hook,
     :scope_vars,
     :time_inspecter,
     :use_braces_instead_of_do_end,
-    :schema,
     :value_conv,
   ]
 
@@ -146,13 +147,13 @@ class Dslh
   def deval(hash)
     buf = StringIO.new
     depth = @options[:initial_depth] || 0
-    deval0(hash, depth, buf)
+    deval0(hash, depth, buf, true)
     buf.string
   end
 
   private
 
-  def deval0(hash, depth, buf)
+  def deval0(hash, depth, buf, root = false)
     indent = (INDENT_SPACES * depth)
     key_conv = @options[:key_conv]
     value_conv = @options[:value_conv]
@@ -180,8 +181,15 @@ class Dslh
 
         buf.puts(indent + key_value)
       else
-        buf.print(indent + key)
-        value_proc(value, depth, buf, true, key)
+        if root and @options[:root_identify] and value.kind_of?(Hash)
+          value.each do |k, v|
+            buf.print(indent + key + ' ' + k.inspect)
+            value_proc(v, depth, buf, true, key)
+          end
+        else
+          buf.print(indent + key)
+          value_proc(value, depth, buf, true, key)
+        end
       end
     end
   end
@@ -330,9 +338,12 @@ class Dslh
       value_conv = @__options__[:value_conv]
       nested_hash = block ? ScopeBlock.nest(binding, 'block', method_name) : nil
       method_name = key_conv.call(method_name) if key_conv
+      exist_value = @__hash__[method_name]
 
-      if not @__options__[:allow_duplicate] and @__hash__.has_key?(method_name) and not (block and block.arity == -1)
-        raise "duplicate key #{method_name.inspect}"
+      if not @__options__[:allow_duplicate] and exist_value and not (block and block.arity == -1)
+        if args.length != 1 or not nested_hash or not exist_value.kind_of?(Hash)
+          raise "duplicate key #{method_name.inspect}"
+        end
       end
 
       push_to_hash = proc do |v|
@@ -350,7 +361,9 @@ class Dslh
         args = args.map {|i| value_conv.call(i) } if value_conv
         value = args.length > 1 ? args : args[0]
 
-        if nested_hash
+        if args.length == 1 and exist_value and nested_hash
+          exist_value[value] = nested_hash
+        elsif nested_hash
           push_to_hash.call(value => nested_hash)
         else
           push_to_hash.call(value)
