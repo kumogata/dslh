@@ -3124,12 +3124,12 @@ mapping:
 
       let(:expected_errmsg) do
         <<-EOS.chomp
-[/employees/0/_id] '123': not a string.
-[/employees/1/email] '100': not a string.
-[/employees2/0] key 'code:' is required.
-[/employees2/0/code1] key 'code1:' is undefined.
-[/employees2/0/email1] key 'email1:' is undefined.
-[/employees3] key 'employees3:' is undefined.
+[/employees/123/_id] '123': not a string.
+[/employees/bar/email] '100': not a string.
+[/employees2/foo2] key 'code:' is required.
+[/employees2/foo2/code1] key 'code1:' is undefined.
+[/employees2/foo2/email1] key 'email1:' is undefined.
+[/employees3/bar2] key 'employees3:' is undefined.
         EOS
       end
 

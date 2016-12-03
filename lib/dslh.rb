@@ -145,6 +145,19 @@ class Dslh
         end
 
         errors = validator.validate(new_retval)
+
+        errors.each do |e|
+          path = e.path.split('/', 4)[1..-1]
+          root_key = path.shift
+          _id = path.shift.to_i
+
+          if _id_orig = new_retval.fetch(root_key, {})[_id]
+            _id = _id_orig['_id'] || _id
+          end
+
+          path = '/' + ([root_key, _id] + path).join('/')
+          e.path.replace(path)
+        end
       else
         errors = validator.validate(retval)
       end
