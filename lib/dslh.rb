@@ -6,10 +6,12 @@ require 'yaml'
 class Dslh
   class ValidationError < StandardError
     attr_reader :errors
+    attr_reader :data
 
-    def initialize(root_errors)
+    def initialize(root_errors, data)
       super(root_errors.map {|e| e.to_s }.join("\n"))
       @errors = root_errors
+      @data = data
     end
   end
 
@@ -163,7 +165,7 @@ class Dslh
       end
 
       unless errors.empty?
-        raise ValidationError, errors
+        raise ValidationError.new(errors, retval)
       end
     end
 

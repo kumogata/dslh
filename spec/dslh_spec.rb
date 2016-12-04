@@ -3022,6 +3022,13 @@ mapping:
         errmsg = e.errors.map {|i| i.to_s }.join("\n")
         expect(errmsg).to eq expected_errmsg
         expect(e.message).to eq expected_errmsg
+        expect(e.data).to eq(
+          {"company"=>"winebarrel inc.",
+           "email"=>"webmaster@winebarrel.com",
+           "employees"=>
+            [{"code"=>"foo", "name"=>101, "email"=>"foo@winebarrel.com"},
+             {"code1"=>102, "name1"=>"bar", "email1"=>"bar@winebarrel.com"}]}
+        )
       end
     end
   end
@@ -3190,6 +3197,13 @@ mapping:
           errmsg = e.errors.map {|i| i.to_s }.join("\n")
           expect(errmsg).to eq expected_errmsg
           expect(e.message).to eq expected_errmsg
+          expect(e.data).to eq(
+            {"employees"=>
+              {123=>{"code"=>101, "email"=>"foo@winebarrel.com"},
+               "bar"=>{"code"=>102, "email"=>100}},
+             "employees2"=>{"foo2"=>{"code1"=>201, "email1"=>"foo@winebarrel.com"}},
+             "employees3"=>{"bar2"=>{"code"=>202, "email"=>"bar@winebarrel.com"}}}
+          )
         end
       end
     end
