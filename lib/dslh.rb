@@ -31,6 +31,7 @@ class Dslh
     :lineno,
     :root_identify,
     :schema,
+    :schema_path,
     :scope_hook,
     :scope_vars,
     :time_inspecter,
@@ -123,18 +124,22 @@ class Dslh
       scope.instance_eval(&block)
     end
 
-    if schema = @options[:schema]
+    if (schema = @options[:schema] || schema_path = @options[:schema_path])
       begin
         require 'kwalify'
       rescue LoadError
         raise 'cannot load "kwalify". please install "kwalify"'
       end
 
-      unless schema.kind_of?(String)
+      if schema and not schema.kind_of?(String)
         raise TypeError, "wrong schema type #{schema.class} (expected String)"
       end
 
-      schema = Kwalify::Yaml.load(schema)
+      if schema_path and not schema_path.kind_of?(String)
+        raise TypeError, "wrong schema_path type #{schema_path.class} (expected String)"
+      end
+
+      schema = schema_path ? Kwalify::Yaml.load_file(schema_path) : Kwalify::Yaml.load(schema)
       validator = Kwalify::Validator.new(schema)
 
       if @options[:root_identify]
