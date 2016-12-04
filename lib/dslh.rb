@@ -62,7 +62,7 @@ class Dslh
     end
 
     def deval(hash, options = {}, &block)
-      if [hash, options].all? {|i| not i.kind_of?(Hash) }
+      if [hash, options].any? {|i| not i.kind_of?(Hash) }
         raise TypeError, "wrong argument type #{options.class} (expected Hash)"
       end
 
