@@ -37,6 +37,7 @@ class Dslh
     :time_inspecter,
     :use_braces_instead_of_do_end,
     :value_conv,
+    :use_heredoc_for_multi_line,
   ]
 
   class << self
@@ -83,6 +84,7 @@ class Dslh
       :dump_old_hash_array_format => false,
       :force_dump_braces => false,
       :use_braces_instead_of_do_end => false,
+      :use_heredoc_for_multi_line => false,
     }.merge(options)
 
     @options[:key_conv] ||= (@options[:conv] || proc {|i| i.to_s })
@@ -318,7 +320,13 @@ class Dslh
         value = @options[:time_inspecter].call(value)
         value_buf.puts(' ' + value)
       else
-        value_buf.puts(' ' + value.inspect)
+        if @options[:use_heredoc_for_multi_line] \
+          and value.kind_of?(String) \
+          and value.match(/\R/)
+          value_buf.puts(' ' + "<<-EOS\n#{value}\nEOS")
+        else
+          value_buf.puts(' ' + value.inspect)
+        end
       end
     end
 
