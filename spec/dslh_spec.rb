@@ -545,6 +545,54 @@ end
     EOS
   end
 
+  it 'should convert hash to dsl with use_heredoc_for_multi_line' do
+    h = {"glossary"=>
+          {"title"=>"example glossary",
+           "description" => "example\nglossary",
+           "GlossDiv"=>
+            {"title"=>"S",
+             "GlossList"=>
+              {"GlossEntry"=>
+                {"ID"=>"SGML",
+                 "SortAs"=>"SGML",
+                 "GlossTerm"=>"Standard Generalized Markup Language",
+                 "Acronym"=>"SGML",
+                 "Abbrev"=>"ISO 8879:1986",
+                 "GlossDef"=>
+                  {"para"=>
+                    "A meta-markup language, used to create markup languages such as DocBook.",
+                   "GlossSeeAlso"=>["GML", "XML"]},
+                 "GlossSee"=>"markup"}}}}}
+
+    dsl = Dslh.deval(h, :use_heredoc_for_multi_line => true)
+    expect(dsl).to eq(<<-EOT)
+glossary do
+  title "example glossary"
+  description <<-EOS
+example
+glossary
+EOS
+  GlossDiv do
+    title "S"
+    GlossList do
+      GlossEntry do
+        ID "SGML"
+        SortAs "SGML"
+        GlossTerm "Standard Generalized Markup Language"
+        Acronym "SGML"
+        Abbrev "ISO 8879:1986"
+        GlossDef do
+          para "A meta-markup language, used to create markup languages such as DocBook."
+          GlossSeeAlso "GML", "XML"
+        end
+        GlossSee "markup"
+      end
+    end
+  end
+end
+    EOT
+  end
+
   it 'does not allow duplicate key' do
     expect {
       Dslh.eval do
