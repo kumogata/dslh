@@ -323,7 +323,7 @@ class Dslh
         if @options[:use_heredoc_for_multi_line] \
           and value.kind_of?(String) \
           and value.match(/\R/)
-          value_buf.puts(' ' + "<<-EOS\n#{value}\nEOS")
+          value_buf.puts(' ' + "<<-'EOS'\n#{value}\nEOS")
         else
           value_buf.puts(' ' + value.inspect)
         end

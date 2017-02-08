@@ -568,7 +568,7 @@ end
     expect(dsl).to eq(<<-EOT)
 glossary do
   title "example glossary"
-  description <<-EOS
+  description <<-'EOS'
 example
 glossary
 EOS
