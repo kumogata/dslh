@@ -3,7 +3,7 @@
 It define Hash as a DSL.
 
 [![Gem Version](https://badge.fury.io/rb/dslh.svg)](https://badge.fury.io/rb/dslh)
-[![Build Status](https://travis-ci.org/kumogata/dslh.svg?branch=master)](https://travis-ci.org/winebarrel/dslh)
+[![Build Status](https://travis-ci.org/kumogata/dslh.svg?branch=master)](https://travis-ci.org/kumogata/dslh)
 
 ## Installation
 
