@@ -191,7 +191,6 @@ class Dslh
   def deval0(hash, depth, buf, root = false)
     indent = (INDENT_SPACES * depth)
     key_conv = @options[:key_conv]
-    value_conv = @options[:value_conv]
 
     if exclude_keys?(hash.keys)
       buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
