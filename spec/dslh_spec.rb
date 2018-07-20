@@ -991,7 +991,8 @@ Mappings do
      "c1.xlarge"=>{"Arch"=>"64"},
      "cc1.4xlarge"=>{"Arch"=>"64HVM"},
      "cc2.8xlarge"=>{"Arch"=>"64HVM"},
-     "cg1.4xlarge"=>{"Arch"=>"64HVM"}})
+     "cg1.4xlarge"=>{"Arch"=>"64HVM"}}
+  )
   AWSRegionArch2AMI(
     {"us-east-1"=>
       {"32"=>"ami-a0cd60c9", "64"=>"ami-aecd60c7", "64HVM"=>"ami-a8cd60c1"},
@@ -1008,7 +1009,8 @@ Mappings do
      "ap-northeast-1"=>
       {"32"=>"ami-2a19aa2b", "64"=>"ami-2819aa29", "64HVM"=>"NOT_YET_SUPPORTED"},
      "sa-east-1"=>
-      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}})
+      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}}
+  )
 end
 Resources do
   S3Bucket do
@@ -1143,12 +1145,14 @@ Resources do
                "libcurl-devel"=>[],
                "libxml2-devel"=>[],
                "openssl-devel"=>[],
-               "mailcap"=>[]})
+               "mailcap"=>[]}
+            )
           end
           sources(
             {"/var/www/html"=>"http://ftp.drupal.org/files/projects/drupal-7.8.tar.gz",
              "/home/ec2-user"=>"http://ftp.drupal.org/files/projects/drush-7.x-4.5.tar.gz",
-             "/home/ec2-user/s3fs"=>"http://s3fs.googlecode.com/files/s3fs-1.61.tar.gz"})
+             "/home/ec2-user/s3fs"=>"http://s3fs.googlecode.com/files/s3fs-1.61.tar.gz"}
+          )
           files(
             {"/etc/passwd-s3fs"=>
               {"content"=>
@@ -1203,7 +1207,8 @@ Resources do
                     "ini_set('session.cookie_lifetime', 2000000);\n"]]},
                "mode"=>"000400",
                "owner"=>"root",
-               "group"=>"root"}})
+               "group"=>"root"}}
+          )
           services do
             sysvinit do
               httpd do
@@ -1610,7 +1615,8 @@ Mappings do
      "c1.xlarge"=>{"Arch"=>"64"},
      "cc1.4xlarge"=>{"Arch"=>"64HVM"},
      "cc2.8xlarge"=>{"Arch"=>"64HVM"},
-     "cg1.4xlarge"=>{"Arch"=>"64HVM"}})
+     "cg1.4xlarge"=>{"Arch"=>"64HVM"}}
+  )
   AWSRegionArch2AMI(
     {"us-east-1"=>
       {"32"=>"ami-a0cd60c9", "64"=>"ami-aecd60c7", "64HVM"=>"ami-a8cd60c1"},
@@ -1627,7 +1633,8 @@ Mappings do
      "ap-northeast-1"=>
       {"32"=>"ami-2a19aa2b", "64"=>"ami-2819aa29", "64HVM"=>"NOT_YET_SUPPORTED"},
      "sa-east-1"=>
-      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}})
+      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}}
+  )
 end
 Resources do
   S3Bucket do
@@ -1762,7 +1769,8 @@ Resources do
                "libcurl-devel"=>[],
                "libxml2-devel"=>[],
                "openssl-devel"=>[],
-               "mailcap"=>[]})
+               "mailcap"=>[]}
+            )
           end
           sources do
             _path "/var/www/html", "http://ftp.drupal.org/files/projects/drupal-7.8.tar.gz"
@@ -2235,7 +2243,8 @@ Mappings do
      "c1.xlarge"=>{"Arch"=>"64"},
      "cc1.4xlarge"=>{"Arch"=>"64HVM"},
      "cc2.8xlarge"=>{"Arch"=>"64HVM"},
-     "cg1.4xlarge"=>{"Arch"=>"64HVM"}})
+     "cg1.4xlarge"=>{"Arch"=>"64HVM"}}
+  )
   AWSRegionArch2AMI(
     {"us-east-1"=>
       {"32"=>"ami-a0cd60c9", "64"=>"ami-aecd60c7", "64HVM"=>"ami-a8cd60c1"},
@@ -2252,7 +2261,8 @@ Mappings do
      "ap-northeast-1"=>
       {"32"=>"ami-2a19aa2b", "64"=>"ami-2819aa29", "64HVM"=>"NOT_YET_SUPPORTED"},
      "sa-east-1"=>
-      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}})
+      {"32"=>"ami-f836e8e5", "64"=>"ami-fe36e8e3", "64HVM"=>"NOT_YET_SUPPORTED"}}
+  )
 end
 Resources do
   WebServer do
@@ -2271,7 +2281,8 @@ Resources do
                "mysql"=>[],
                "mysql-server"=>[],
                "mysql-devel"=>[],
-               "mysql-libs"=>[]})
+               "mysql-libs"=>[]}
+            )
           end
           sources do
             _path "/var/www/html", "http://ftp.drupal.org/files/projects/drupal-7.8.tar.gz"
