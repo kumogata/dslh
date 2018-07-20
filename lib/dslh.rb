@@ -196,7 +196,7 @@ class Dslh
     if exclude_keys?(hash.keys)
       _buf = <<EOS
 (
-#{JSON.pretty_generate(hash, { indent: indent })}
+#{JSON.pretty_generate(hash, { indent: indent }).gsub('":', '" =>')}
 )
 EOS
       return buf.puts(_buf)
