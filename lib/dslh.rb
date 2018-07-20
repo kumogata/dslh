@@ -1,6 +1,7 @@
 require 'dslh/version'
 require 'stringio'
 require 'pp'
+require 'json'
 require 'yaml'
 
 class Dslh
@@ -193,8 +194,12 @@ class Dslh
     key_conv = @options[:key_conv]
 
     if exclude_keys?(hash.keys)
-      buf.puts('(' + ("\n" + hash.pretty_inspect.strip).gsub("\n", "\n" + indent) + ')')
-      return
+      _buf = <<EOS
+(
+#{JSON.pretty_generate(hash, { indent: indent })}
+)
+EOS
+      return buf.puts(_buf)
     end
 
     hash.each do |key, value|
