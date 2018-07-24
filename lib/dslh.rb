@@ -1,7 +1,6 @@
 require 'dslh/version'
 require 'stringio'
 require 'pp'
-require 'json'
 require 'yaml'
 
 class Dslh
@@ -194,12 +193,13 @@ class Dslh
     key_conv = @options[:key_conv]
 
     if exclude_keys?(hash.keys)
-      _buf = <<EOS
+      buf.puts(<<-EOS
 (
-#{JSON.pretty_generate(hash, { indent: indent })}
+  #{hash.pretty_inspect.strip.gsub("\n", "\n" + indent)}
 )
 EOS
-      return buf.puts(_buf)
+               )
+      return
     end
 
     hash.each do |key, value|
@@ -242,7 +242,12 @@ EOS
     case value
     when Hash
       if exclude_keys?(value.keys)
-        value_buf.puts('(' + ("\n" + value.pretty_inspect.strip).gsub("\n", "\n" + next_indent) + ')')
+        value_buf.puts(<<-EOS
+(
+#{next_indent}#{value.pretty_inspect.strip.gsub("\n", "\n" + next_indent)}
+#{indent})
+EOS
+                       )
       else
         nested = true
         value_buf.puts(@options[:use_braces_instead_of_do_end] ? ' {' : ' do')
